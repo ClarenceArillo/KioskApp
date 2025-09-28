@@ -18,7 +18,7 @@ public class MenuItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int itemId;
+    private long itemId;
     private String itemName;
     private double itemPrice;
     private String itemDescription;

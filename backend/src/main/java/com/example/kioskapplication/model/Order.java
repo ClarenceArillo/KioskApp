@@ -19,7 +19,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderCart {
+public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +31,7 @@ public class OrderCart {
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus; // PENDING, PREPARING, NOW_SERVING, DONE, CANCELLED
 
+    private boolean isOrderStarted = false; // to flip to "true" when order is being prepared
     private boolean paid;
     private boolean checkout = false; // to flip to "true" when user checks out
     private double totalPrice;
