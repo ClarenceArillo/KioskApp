@@ -22,7 +22,6 @@ public class MenuItem {
     private String itemName;
     private double itemPrice;
     private String itemDescription;
-    private String itemCategory;
     private String itemImageUrl;
     private boolean isAvailable;
     private char itemSize; // S, M, L
