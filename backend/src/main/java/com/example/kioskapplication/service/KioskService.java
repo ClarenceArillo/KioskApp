@@ -8,14 +8,13 @@ import java.util.List;
 public interface KioskService {
 
     //before order
-    public void startOrder(OrderType orderType);
+    public void startOrder();
     public void setOrderType(OrderType orderType);
     public OrderType getOrderType();
 
     //screen statics
     public List <MenuItemCategory> getMenuItemCategories();
-    public List<MenuItem> setMenuItemValue();
-    public List<MenuItem> getAllMenuItemsPerCategory();
+    public List<MenuItem> getAllMenuItemsPerCategory(MenuItemCategory category);
 
     //order screen functionalities
     public String addMenuItemtoCart(Long id, char size, int quantity);
