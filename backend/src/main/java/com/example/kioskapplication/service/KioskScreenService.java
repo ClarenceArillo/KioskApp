@@ -3,6 +3,7 @@ package com.example.kioskapplication.service;
 import com.example.kioskapplication.model.MenuItem;
 import com.example.kioskapplication.model.MenuItemCategory;
 import com.example.kioskapplication.model.OrderType;
+import com.example.kioskapplication.repository.MenuItemRepository;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -17,9 +18,9 @@ public class KioskScreenService implements KioskService{
     private OrderType orderType = null;
 
     @Override
-    public void startOrder(OrderType orderType) {
+    public void startOrder() {
         this.orderStarted = true;
-        this.orderType = orderType;
+        this.orderType = null;
     }
 
     @Override
@@ -49,14 +50,18 @@ public class KioskScreenService implements KioskService{
         return List.of(MenuItemCategory.values());
     }
 
-    @Override
-    public List<MenuItem> setMenuItemValue() {
-        return null;
-    }
 
     @Override
-    public List <MenuItem> getAllMenuItemsPerCategory() {
-        return null;
+    public List <MenuItem> getAllMenuItemsPerCategory(MenuItemCategory category) {
+        if(!isOrderStarted() || orderType == null){
+            throw new IllegalStateException("Please start an order to view the menu.");
+        }
+        return menuItemRepository.findByItemCategorySelected(category);
+    }
+
+    private final MenuItemRepository menuItemRepository;
+    public KioskScreenService(MenuItemRepository menuItemRepository) {
+        this.menuItemRepository = menuItemRepository;
     }
 
     public List <MenuItem> addMenuItem (MenuItem menuItem) {

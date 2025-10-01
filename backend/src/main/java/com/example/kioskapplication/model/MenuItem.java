@@ -20,13 +20,14 @@ public class MenuItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long itemId;
     private String itemName;
+
+    @Enumerated(EnumType.STRING)
+    private MenuItemCategory itemCategorySelected; //  WHATs_NEW, FAMILY_MEAL, ALMUSAL, RICE_MEAL, MERYENDA, PANGHIMAGAS
+
     private double itemPrice;
     private String itemDescription;
     private String itemImageUrl;
     private boolean isAvailable;
     private char itemSize; // S, M, L
-
-    @Enumerated(EnumType.STRING)
-    private MenuItemCategory itemCategorySelected; // BURGER_SANDWICHES, CHICKEN_PLATTERS, DRINKS, DESSERTS, SIDES_FRIES, VALUE_MEALS_COMBOS
 
 }
