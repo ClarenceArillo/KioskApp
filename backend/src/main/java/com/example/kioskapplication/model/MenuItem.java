@@ -24,10 +24,10 @@ public class MenuItem {
     @Enumerated(EnumType.STRING)
     private MenuItemCategory itemCategorySelected; //  WHATs_NEW, FAMILY_MEAL, ALMUSAL, RICE_MEAL, MERYENDA, PANGHIMAGAS
 
+    private int itemQuantity = 1; // default quantity is 1
     private double itemPrice;
     private String itemDescription;
     private String itemImageUrl;
-    private boolean isAvailable;
     private char itemSize; // S, M, L
 
 }

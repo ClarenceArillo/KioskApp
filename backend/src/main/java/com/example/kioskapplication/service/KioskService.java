@@ -17,10 +17,10 @@ public interface KioskService {
     public List<MenuItem> getAllMenuItemsPerCategory(MenuItemCategory category);
 
     //order screen functionalities
-    public String addMenuItemtoCart(Long id, char size, int quantity);
-    public String removeMenuItemFromCart(Long id, char size);
+    public List<MenuItem> addMenuItemtoCart(MenuItem menuItem);
+    public boolean removeMenuItemFromCart(Long id);
     public String updateMenuItemInCart(Long id, char size, int quantity);
-    public String viewCart();
+    public List<MenuItem> viewCart();
     public String checkout();
     public String cancelOrder();
 
