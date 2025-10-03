@@ -34,21 +34,30 @@ public class KioskController {
         return kioskScreenService.getMenuItemCategories();
     }
 
-    @GetMapping("/menu")
-    public List<MenuItem> getMenuItemPerCategory(@RequestParam MenuItemCategory category) {
+    @GetMapping("/{category}/menu")
+    public List<MenuItem> getMenuItemPerCategory(@PathVariable MenuItemCategory category) {
         return kioskScreenService.getAllMenuItemsPerCategory(category);
     }
 
-
-    @PostMapping("/Menu/{MenuItemCategory}")
-    public List<MenuItem> addMenuItem(MenuItem menuItem) {
-        return null;
+    @PostMapping("/cart/add")
+    public List<MenuItem> addMenuItem(@RequestBody MenuItem menuItem) {
+        return kioskScreenService.addMenuItemtoCart(menuItem);
     }
 
-    @GetMapping("/Menu/{MenuItemCategory}")
-    public List<MenuItem> getMenuItemPerCategory() {
-        return null;
+    @PutMapping("/cart/update")
+    public String updateMenuItem(@RequestParam Long id, @RequestParam char size, @RequestParam int quantity) {
+        String update =  kioskScreenService.updateMenuItemInCart(id, size, quantity);
+        return update + "Item updated in cart";
     }
 
+    @DeleteMapping("/cart/remove")
+    public String removeMenuItem(@RequestBody MenuItem menuItem) {
+        boolean removed = kioskScreenService.removeMenuItemFromCart(menuItem.getItemId());
+        return removed ? "Item removed from cart" : "Item not found in cart";
+    }
 
+    @GetMapping("/cart/view")
+    public List<MenuItem> viewCart() {
+        return kioskScreenService.viewCart();
+    }
 }

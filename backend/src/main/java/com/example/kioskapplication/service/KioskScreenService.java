@@ -6,6 +6,9 @@ import com.example.kioskapplication.model.OrderType;
 import com.example.kioskapplication.repository.MenuItemRepository;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
+
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -16,6 +19,13 @@ public class KioskScreenService implements KioskService{
     @Getter
     private boolean orderStarted = false;
     private OrderType orderType = null;
+
+    private final MenuItemRepository menuItemRepository;
+    public KioskScreenService(MenuItemRepository menuItemRepository) {
+        this.menuItemRepository = menuItemRepository;
+    }
+
+    private final List<MenuItem> cartItems = new ArrayList<>();
 
     @Override
     public void startOrder() {
@@ -59,34 +69,33 @@ public class KioskScreenService implements KioskService{
         return menuItemRepository.findByItemCategorySelected(category);
     }
 
-    private final MenuItemRepository menuItemRepository;
-    public KioskScreenService(MenuItemRepository menuItemRepository) {
-        this.menuItemRepository = menuItemRepository;
-    }
-
-    public List <MenuItem> addMenuItem (MenuItem menuItem) {
-        return null;
-    }
-
     //Kiosk Functionalities.
     @Override
-    public String addMenuItemtoCart(Long id, char size, int quantity) {
-        return null;
+    public List<MenuItem> addMenuItemtoCart(MenuItem menuItem) {
+        cartItems.add(menuItem);
+        return cartItems;
     }
 
     @Override
-    public String removeMenuItemFromCart(Long id, char size) {
-        return null;
+    public boolean removeMenuItemFromCart(Long id) {
+        return cartItems.removeIf(item -> item.getItemId()==(id));
     }
 
     @Override
     public String updateMenuItemInCart(Long id, char size, int quantity) {
-        return null;
+        for (MenuItem item : cartItems) {
+            if (item.getItemId() == id) {
+                item.setItemSize(size);
+                item.setItemQuantity(quantity);
+                ;
+            }
+        }
+        return "Item updated successfully (Size: " + size + ", Quantity: " + quantity + ")";
     }
 
     @Override
-    public String viewCart() {
-        return null;
+    public List<MenuItem> viewCart() {
+        return cartItems;
     }
 
     @Override

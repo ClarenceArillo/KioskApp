@@ -19,20 +19,20 @@ public class MenuItemConfig {
                         0,
                         "Sisig Rice Bowl",
                         MenuItemCategory.RICE_MEAL ,
+                        1,
                         120.0,
                         "Sizzling pork sisig",
                         "SisigPork.jpeg",
-                        true,
                         'M'));
 
                 repo.save(new MenuItem(
                         0,
                         "Halo-Halo Special",
                         MenuItemCategory.PANGHIMAGAS,
+                        1,
                         90.0,
                         "Classic Filipino dessert",
                         "Halo-Halo.jpeg",
-                        true,
                         'M'));
                 // Add more items as needed
             }
