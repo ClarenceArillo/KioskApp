@@ -2,6 +2,7 @@ package com.example.kioskapplication.service;
 
 import com.example.kioskapplication.model.MenuItem;
 import com.example.kioskapplication.model.MenuItemCategory;
+import com.example.kioskapplication.model.OrderStatus;
 import com.example.kioskapplication.model.OrderType;
 import java.util.List;
 
@@ -21,8 +22,9 @@ public interface KioskService {
     public boolean removeMenuItemFromCart(Long id);
     public String updateMenuItemInCart(Long id, char size, int quantity);
     public List<MenuItem> viewCart();
-    public String checkout();
-    public String cancelOrder();
+    public void checkout();
+    public void cancelOrder(OrderStatus orderStatus);
+    Integer payOrder();
 
 
 
