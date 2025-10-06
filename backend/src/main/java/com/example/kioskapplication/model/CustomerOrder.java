@@ -1,21 +1,17 @@
 package com.example.kioskapplication.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "customer_order")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,7 +19,9 @@ public class CustomerOrder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int orderId;
+    private Integer orderId; //DB ID
+
+    //private int orderId; // Order number shown to user on receipt and screen
 
     @Enumerated(EnumType.STRING)
     private OrderType orderType;
@@ -31,17 +29,23 @@ public class CustomerOrder {
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus; // PENDING, PREPARING, NOW_SERVING, DONE, CANCELLED
 
-    private boolean isOrderStarted = false; // to flip to "true" when order is being prepared
-    private boolean paid;
-    private boolean checkout = false; // to flip to "true" when user checks out
-    private double totalPrice;
 
-    @ManyToMany
-    @JoinTable(
-            name = "order_id",
-            joinColumns = @JoinColumn(name = "order_id"),
-            inverseJoinColumns = @JoinColumn(name = "item_id")
-    )
-    private List<MenuItem> orderItems = new ArrayList<>();
+    private boolean isOrderStarted = false; // to flip to "true" when order is being prepared
+    private boolean isPaid = false; // to flip to "true" when user pays
+    private boolean isCheckout = false; // to flip to "true" when user checks out
+    private double totalPrice;
+    private LocalDateTime orderDateTime;
+
+
+    @OneToMany(cascade = CascadeType.ALL , fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private List<OrderItem> orderItems = new ArrayList<>();
+
+
+    // Helper method to add items
+    public void addOrderItem(OrderItem item) {
+        this.orderItems.add(item);
+    }
+
 
 }

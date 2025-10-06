@@ -13,7 +13,15 @@ public record ReceiptDTO (
     String companyAddress,
     String companyPhone,
     String companyEmail,
-    String companyLogoUrl,
-    String cashierName
+    String companyLogoUrl
+
 )
-{}
+{
+    public ReceiptDTO{
+        companyName = "Kiosk Restaurant";
+        companyAddress = "123 Food Street, City, State 12345";
+        companyPhone = "(555) 123-4567";
+        companyEmail = "info@kioskrestaurant.com";
+        companyLogoUrl = "/images/logo.png";
+    }
+}
