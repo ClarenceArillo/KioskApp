@@ -82,10 +82,11 @@ public class KioskController {
         }
     }
 
-    @PostMapping("/receipt/{orderId}" )
+    @GetMapping("/receipt/{orderId}" )
     public ResponseEntity<?> getReceipt(@PathVariable Integer orderId) {
         try{
             ReceiptDTO receipt = kioskScreenService.receiptPrintout(orderId);
+            kioskScreenService.completeOrder();
             return ResponseEntity.ok(receipt);
         }catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());

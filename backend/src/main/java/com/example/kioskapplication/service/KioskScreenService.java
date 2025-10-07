@@ -26,7 +26,6 @@ public class KioskScreenService implements KioskService{
     private OrderStatus orderStatus = null;
     private boolean isPaid = false;
 
-
     private final MenuItemRepository menuItemRepository;
     private final CustomerOrdersRepository customerOrdersRepository;
     public KioskScreenService(MenuItemRepository menuItemRepository, CustomerOrdersRepository customerOrdersRepository) {
@@ -208,6 +207,7 @@ public class KioskScreenService implements KioskService{
                 "info@kioskrestaurant.com",
                 "/images/logo.png"
         );
+
     }
 
     // Add this method to clear cart after receipt is generated
