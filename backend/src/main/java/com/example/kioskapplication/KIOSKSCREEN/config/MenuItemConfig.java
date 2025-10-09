@@ -1,8 +1,8 @@
-package com.example.kioskapplication.config;
+package com.example.kioskapplication.KIOSKSCREEN.config;
 
-import com.example.kioskapplication.model.MenuItem;
-import com.example.kioskapplication.model.MenuItemCategory;
-import com.example.kioskapplication.repository.MenuItemRepository;
+import com.example.kioskapplication.KIOSKSCREEN.model.MenuItem;
+import com.example.kioskapplication.KIOSKSCREEN.model.MenuItemCategory;
+import com.example.kioskapplication.KIOSKSCREEN.repository.MenuItemRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

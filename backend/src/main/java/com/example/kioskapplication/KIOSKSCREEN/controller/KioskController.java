@@ -1,8 +1,7 @@
-package com.example.kioskapplication.controller;
+package com.example.kioskapplication.KIOSKSCREEN.controller;
 
-import com.example.kioskapplication.model.*;
-import com.example.kioskapplication.repository.MenuItemRepository;
-import com.example.kioskapplication.service.KioskScreenService;
+import com.example.kioskapplication.KIOSKSCREEN.model.*;
+import com.example.kioskapplication.KIOSKSCREEN.service.KioskScreenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
