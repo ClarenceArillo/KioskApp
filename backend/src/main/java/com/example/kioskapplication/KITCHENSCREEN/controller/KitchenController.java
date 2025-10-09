@@ -27,8 +27,11 @@ public class KitchenController {
     }
 
     @GetMapping("/done")
-    public List<CustomerOrder> getDoneOrders() {
-        return kitchenService.getOrderByStatus(OrderStatus.DONE);
+    public List<Integer> getDoneOrders() {
+        return kitchenService.getOrderByStatus(OrderStatus.DONE)
+                .stream()
+                .map(CustomerOrder::getOrderId)
+                .toList();
     }
 
     @PutMapping("/to-prepare/{orderId}/start")
@@ -38,16 +41,16 @@ public class KitchenController {
 
     @PutMapping("/to-prepare/{orderId}/ready")
     public CustomerOrder readyOrder(@PathVariable Integer orderId) {
-        return kitchenService.updateOrderStatus(orderId, OrderStatus.PREPARING);
+        return kitchenService.updateOrderStatus(orderId, OrderStatus.NOW_SERVING);
     }
 
     @PutMapping("/to-prepare/{orderId}/done")
     public CustomerOrder doneOrder(@PathVariable Integer orderId) {
-        return kitchenService.updateOrderStatus(orderId, OrderStatus.PREPARING);
+        return kitchenService.updateOrderStatus(orderId, OrderStatus.DONE);
     }
 
-    @GetMapping("done/view")
-    public List<CustomerOrder> getAllDoneOrders() {
+    @GetMapping("done/{orderId}/view")
+    public List<CustomerOrder> getDoneOrderById() {
         return kitchenService.getOrderByStatus(OrderStatus.DONE);
     }
 
