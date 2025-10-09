@@ -1,9 +1,8 @@
-package com.example.kioskapplication.model;
+package com.example.kioskapplication.KIOSKSCREEN.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;

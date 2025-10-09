@@ -1,14 +1,13 @@
-package com.example.kioskapplication.service;
+package com.example.kioskapplication.KIOSKSCREEN.service;
 
-import com.example.kioskapplication.model.*;
-import com.example.kioskapplication.model.MenuItem;
-import com.example.kioskapplication.repository.CustomerOrdersRepository;
-import com.example.kioskapplication.repository.MenuItemRepository;
+import com.example.kioskapplication.KIOSKSCREEN.model.*;
+import com.example.kioskapplication.KIOSKSCREEN.model.MenuItem;
+import com.example.kioskapplication.KIOSKSCREEN.repository.CustomerOrdersRepository;
+import com.example.kioskapplication.KIOSKSCREEN.repository.MenuItemRepository;
 import jakarta.transaction.Transactional;
 import lombok.Getter;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.stereotype.Service;
-import java.awt.*;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

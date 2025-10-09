@@ -1,7 +1,7 @@
-package com.example.kioskapplication.repository;
+package com.example.kioskapplication.KIOSKSCREEN.repository;
 
-import com.example.kioskapplication.model.MenuItem;
-import com.example.kioskapplication.model.MenuItemCategory;
+import com.example.kioskapplication.KIOSKSCREEN.model.MenuItem;
+import com.example.kioskapplication.KIOSKSCREEN.model.MenuItemCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

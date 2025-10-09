@@ -1,9 +1,9 @@
-package com.example.kioskapplication.service;
+package com.example.kioskapplication.KIOSKSCREEN.service;
 
-import com.example.kioskapplication.model.MenuItem;
-import com.example.kioskapplication.model.MenuItemCategory;
-import com.example.kioskapplication.model.OrderStatus;
-import com.example.kioskapplication.model.OrderType;
+import com.example.kioskapplication.KIOSKSCREEN.model.MenuItem;
+import com.example.kioskapplication.KIOSKSCREEN.model.MenuItemCategory;
+import com.example.kioskapplication.KIOSKSCREEN.model.OrderStatus;
+import com.example.kioskapplication.KIOSKSCREEN.model.OrderType;
 import java.util.List;
 
 public interface KioskService {

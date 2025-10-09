@@ -1,4 +1,4 @@
-package com.example.kioskapplication.model;
+package com.example.kioskapplication.KIOSKSCREEN.model;
 
 public record ReceiptItemDTO(
         String itemName,

@@ -1,4 +1,4 @@
-package com.example.kioskapplication.model;
+package com.example.kioskapplication.KIOSKSCREEN.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
