@@ -25,8 +25,11 @@ public class KitchenController {
     }
 
     @GetMapping("/to-prepare")
-    public List<CustomerOrder> getPendingOrders() {
-        return kitchenService.getOrderByStatus(OrderStatus.PENDING);
+    public List<Integer> getPendingOrders() {
+        return kitchenService.getOrderByStatus(OrderStatus.PENDING)
+                .stream()
+                .map(CustomerOrder::getOrderId)
+                .toList();
     }
 
     @GetMapping("/done")
