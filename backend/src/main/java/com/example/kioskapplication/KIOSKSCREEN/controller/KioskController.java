@@ -33,9 +33,13 @@ public class KioskController {
     }
 
     @GetMapping("/{category}/menu")
-    public List<MenuItem> getMenuItemPerCategory(@PathVariable MenuItemCategory category) {
-        return kioskScreenService.getAllMenuItemsPerCategory(category);
+    public List<MenuItem> getMenuItemPerCategory(
+            @PathVariable MenuItemCategory category,
+            @RequestParam(defaultValue = "default") String sortOrder // ?sortOrder=asc / desc / default
+    ) {
+        return kioskScreenService.getAllMenuItemsPerCategory(category, sortOrder);
     }
+
 
     @PostMapping("/{category}/{itemId}/add")
     public List<MenuItem> addMenuItem(@PathVariable MenuItemCategory category,@PathVariable Long itemId,  @RequestBody MenuItem menuItem) {
