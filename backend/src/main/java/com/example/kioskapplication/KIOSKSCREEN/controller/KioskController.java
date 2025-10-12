@@ -5,7 +5,9 @@ import com.example.kioskapplication.KIOSKSCREEN.service.KioskScreenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -15,6 +17,8 @@ public class KioskController {
     @Autowired
     private KioskScreenService kioskScreenService;
 
+    private final List<SseEmitter> emitters = new ArrayList<>();
+
     @PostMapping("/start")
     public String startOrder() {
         kioskScreenService.startOrder();
@@ -23,7 +27,9 @@ public class KioskController {
 
     @PostMapping("/type")
     public String selectOrderType(@RequestParam OrderType orderType) {
-        kioskScreenService.setOrderType(orderType);
+        if (orderType != null) {
+            kioskScreenService.setOrderType(orderType);
+        }
         return "Order type set to " + orderType + ", you can now view categories";
     }
 
@@ -95,6 +101,7 @@ public class KioskController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
 
 
 
