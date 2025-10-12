@@ -4,8 +4,11 @@ import com.example.kioskapplication.KIOSKSCREEN.model.*;
 import com.example.kioskapplication.KIOSKSCREEN.model.MenuItem;
 import com.example.kioskapplication.KIOSKSCREEN.repository.CustomerOrdersRepository;
 import com.example.kioskapplication.KIOSKSCREEN.repository.MenuItemRepository;
+import com.example.kioskapplication.KITCHENSCREEN.controller.KitchenController;
+import com.example.kioskapplication.KITCHENSCREEN.service.KitchenService;
 import jakarta.transaction.Transactional;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,6 +28,9 @@ public class KioskScreenService implements KioskService{
     private boolean isCheckout = false;
     private OrderStatus orderStatus = null;
     private boolean isPaid = false;
+
+    @Autowired
+    private KitchenController kitchenController;
 
     private final MenuItemRepository menuItemRepository;
     private final CustomerOrdersRepository customerOrdersRepository;
@@ -162,6 +168,7 @@ public class KioskScreenService implements KioskService{
             this.orderStatus = OrderStatus.PENDING;
             this.isPaid = true;
             CustomerOrder savedOrder = saveOrderToDatabase();
+            kitchenController.notifyKitchen(savedOrder);
             return savedOrder.getOrderId();
         }
     }

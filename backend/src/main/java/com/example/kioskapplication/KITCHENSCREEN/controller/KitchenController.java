@@ -5,7 +5,9 @@ import com.example.kioskapplication.KIOSKSCREEN.model.OrderStatus;
 import com.example.kioskapplication.KIOSKSCREEN.repository.CustomerOrdersRepository;
 import com.example.kioskapplication.KITCHENSCREEN.service.KitchenService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -13,6 +15,7 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class KitchenController {
 
+    private final List<SseEmitter> emitters = new ArrayList<>();
     private final CustomerOrdersRepository customerOrdersRepository;
     private final KitchenService kitchenService;
 
@@ -52,6 +55,30 @@ public class KitchenController {
     @GetMapping("done/{orderId}/view")
     public List<CustomerOrder> getDoneOrderById() {
         return kitchenService.getOrderByStatus(OrderStatus.DONE);
+    }
+
+    @GetMapping("/stream")
+    public SseEmitter streamOrders() {
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        emitters.add(emitter);
+
+        emitter.onCompletion(() -> emitters.remove(emitter));
+        emitter.onTimeout(() -> emitters.remove(emitter));
+        return emitter;
+    }
+
+    public void notifyKitchen(CustomerOrder newOrder) {
+        List <SseEmitter> deadEmitters = new ArrayList<>();
+        for (SseEmitter emitter : emitters) {
+            try{
+                emitter.send(SseEmitter.event()
+                        .name("new-order")
+                        .data(newOrder));
+            }catch (Exception e){
+                deadEmitters.add(emitter);
+            }
+        }
+        emitters.removeAll(deadEmitters);
     }
 
 
