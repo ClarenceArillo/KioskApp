@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,6 +79,29 @@ public class KioskScreenService implements KioskService{
     }
 
     //Kiosk Functionalities.
+    @Override
+    public List<MenuItem> getAllMenuItemsPerCategory(MenuItemCategory category, String sortOrder) {
+        if (!isOrderStarted() || orderType == null) {
+            throw new IllegalStateException("Please start an order to view the menu.");
+        }
+
+        List<MenuItem> items = menuItemRepository.findByItemCategorySelected(category);
+
+        switch (sortOrder.toLowerCase()) {
+            case "asc" ->
+                    items.sort(Comparator.comparingDouble(MenuItem::getItemPrice)); // ascending
+            case "desc" ->
+                    items.sort(Comparator.comparingDouble(MenuItem::getItemPrice).reversed()); // descending
+            case "default" -> {
+                // do nothing, retain DB/default declaration order
+            }
+            default -> throw new IllegalArgumentException("Invalid sortOrder. Use 'asc', 'desc', or 'default'.");
+        }
+
+        return items;
+    }
+
+
     @Override
     public List<MenuItem> addMenuItemtoCart(MenuItem menuItem) {
         cartItems.add(menuItem);
