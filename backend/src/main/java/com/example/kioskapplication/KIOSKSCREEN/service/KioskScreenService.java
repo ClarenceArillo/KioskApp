@@ -231,11 +231,11 @@ public class KioskScreenService implements KioskService{
                 latestOrder.getOrderDateTime(), // Use correct getter
                 latestOrder.getTotalPrice(),
                 receiptItems,
-                "Kiosk Restaurant",
-                "123 Food Street, City, State 12345",
-                "(555) 123-4567",
-                "info@kioskrestaurant.com",
-                "/images/logo.png"
+                "AYA",
+                "Makati Avenue, Poblacion, Makati City",
+                " (+63) 927-531-4820",
+                "ayamnl@gmail.com",
+                "/images/Logo.png"
         );
 
     }
