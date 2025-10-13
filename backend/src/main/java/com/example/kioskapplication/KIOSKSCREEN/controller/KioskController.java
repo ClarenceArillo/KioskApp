@@ -5,7 +5,6 @@ import com.example.kioskapplication.KIOSKSCREEN.service.KioskScreenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +15,6 @@ public class KioskController {
 
     @Autowired
     private KioskScreenService kioskScreenService;
-
-    private final List<SseEmitter> emitters = new ArrayList<>();
 
     @PostMapping("/start")
     public String startOrder() {
