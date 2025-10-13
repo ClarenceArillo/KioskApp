@@ -18,10 +18,10 @@ public record ReceiptDTO (
 )
 {
     public ReceiptDTO{
-        companyName = "Kiosk Restaurant";
-        companyAddress = "123 Food Street, City, State 12345";
-        companyPhone = "(555) 123-4567";
-        companyEmail = "info@kioskrestaurant.com";
-        companyLogoUrl = "/images/logo.png";
+        companyName = "AYA";
+        companyAddress = "Makati Avenue, Poblacion, Makati City";
+        companyPhone = " (+63) 927-531-4820";
+        companyEmail = "ayamnl@gmail.com";
+        companyLogoUrl = "/images/Logo.png";
     }
 }
