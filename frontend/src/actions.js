@@ -1,5 +1,27 @@
-import axios from 'axios';
-import { CATEGORY_LIST_FAIL, CATEGORY_LIST_REQUEST, CATEGORY_LIST_SUCCESS, ORDER_SET_TYPE, PRODUCT_LIST_FAIL, PRODUCT_LIST_REQUEST, PRODUCT_LIST_SUCCESS } from "./constants";
+import Axios from 'axios';
+import {
+  ORDER_SET_TYPE,
+  CATEGORY_LIST_REQUEST,
+  CATEGORY_LIST_FAIL,
+  CATEGORY_LIST_SUCCESS,
+  PRODUCT_LIST_REQUEST,
+  PRODUCT_LIST_SUCCESS,
+  PRODUCT_LIST_FAIL,
+  ORDER_ADD_ITEM,
+  ORDER_REMOVE_ITEM,
+  ORDER_CLEAR,
+  ORDER_SET_PAYMENT_TYPE,
+  ORDER_CREATE_REQUEST,
+  ORDER_CREATE_FAIL,
+  ORDER_CREATE_SUCCESS,
+  ORDER_LIST_REQUEST,
+  ORDER_LIST_FAIL,
+  ORDER_LIST_SUCCESS,
+  SCREEN_SET_WIDTH,
+  ORDER_QUEUE_LIST_REQUEST,
+  ORDER_QUEUE_LIST_SUCCESS,
+  ORDER_QUEUE_LIST_FAIL,
+} from './constants';
 
 export const setOrderType = (dispatch, orderType) => {
   return dispatch({
@@ -11,7 +33,7 @@ export const setOrderType = (dispatch, orderType) => {
 export const listCategories = async (dispatch) => {
   dispatch({ type: CATEGORY_LIST_REQUEST });
   try {
-    const { data } = await axios.get('/api/categories');
+    const { data } = await Axios.get('/api/categories');
     return dispatch({
       type: CATEGORY_LIST_SUCCESS,
       payload: data,
@@ -24,18 +46,38 @@ export const listCategories = async (dispatch) => {
   }
 };
 
-export const listProducts = async (dispatch, categoryName =  '') => {
+export const listProducts = async (dispatch, categoryName = '') => {
   dispatch({ type: PRODUCT_LIST_REQUEST });
   try {
-    const { data } = await axios.get(`/api/products?category=${categoryName}`);
+    const { data } = await Axios.get(`/api/products?category=${categoryName}`);
     return dispatch({
       type: PRODUCT_LIST_SUCCESS,
       payload: data,
     });
-  } catch(error) {
+  } catch (error) {
     return dispatch({
       type: PRODUCT_LIST_FAIL,
       payload: error.message,
     });
   }
-}
+};
+
+export const addToOrder = async (dispatch, item) => {
+  return dispatch({
+    type: ORDER_ADD_ITEM,
+    payload: item,
+  });
+};
+
+export const removeFromOrder = async (dispatch, item) => {
+  return dispatch({
+    type: ORDER_REMOVE_ITEM,
+    payload: item,
+  });
+};
+
+export const clearOrder = async (dispatch) => {
+  return dispatch({
+    type: ORDER_CLEAR,
+  });
+};
