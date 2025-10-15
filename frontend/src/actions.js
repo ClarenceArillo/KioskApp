@@ -28,6 +28,13 @@ const axiosInstance = axios.create({
   baseURL: "http://localhost:7000/order",
 });
 
+
+// ✅ Use single axios instance for all backend requests
+const axiosInstance = axios.create({
+  baseURL: "http://localhost:7000/order",
+});
+
+// ✅ Start Order
 export const startOrder = async () => {
   try {
     const response = await axiosInstance.post("/start");
@@ -39,7 +46,7 @@ export const startOrder = async () => {
   }
 };
 
-
+// ✅ Set Order Type (DINE_IN / TAKE_OUT)
 export const setOrderType = (dispatch, orderType) => {
   return dispatch({
     type: ORDER_SET_TYPE,
