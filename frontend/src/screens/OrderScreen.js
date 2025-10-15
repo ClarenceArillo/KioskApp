@@ -23,6 +23,7 @@ import { Store } from '../Store';
 import Logo from '../components/Logo';
 import { useStyles } from '../styles';
 import { useNavigate } from 'react-router-dom';
+import categories from '../categoryData';
 
 export default function OrderScreen(props) {
   const styles = useStyles();

@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 import {
   ORDER_SET_TYPE,
   CATEGORY_LIST_REQUEST,
@@ -10,31 +10,14 @@ import {
   ORDER_ADD_ITEM,
   ORDER_REMOVE_ITEM,
   ORDER_CLEAR,
-  ORDER_SET_PAYMENT_TYPE,
-  ORDER_CREATE_REQUEST,
-  ORDER_CREATE_FAIL,
-  ORDER_CREATE_SUCCESS,
-  ORDER_LIST_REQUEST,
-  ORDER_LIST_FAIL,
-  ORDER_LIST_SUCCESS,
-  SCREEN_SET_WIDTH,
-  ORDER_QUEUE_LIST_REQUEST,
-  ORDER_QUEUE_LIST_SUCCESS,
-  ORDER_QUEUE_LIST_FAIL,
-} from './constants';
+} from "./constants";
 
-// ✅ Use single axios instance for all backend requests
+// ✅ Backend base URL
 const axiosInstance = axios.create({
   baseURL: "http://localhost:7000/order",
 });
 
-
-// ✅ Use single axios instance for all backend requests
-const axiosInstance = axios.create({
-  baseURL: "http://localhost:7000/order",
-});
-
-// ✅ Start Order
+// ✅ Start order
 export const startOrder = async () => {
   try {
     const response = await axiosInstance.post("/start");
@@ -46,19 +29,34 @@ export const startOrder = async () => {
   }
 };
 
-// ✅ Set Order Type (DINE_IN / TAKE_OUT)
+// ✅ Set order type
 export const setOrderType = (dispatch, orderType) => {
-  return dispatch({
+  dispatch({
     type: ORDER_SET_TYPE,
     payload: orderType,
   });
 };
 
+// ✅ Category representative images
+const categoryImageMap = {
+  ALMUSAL: "/images/ALMUSAL/Tapsilog.png",
+  FAMILYMEAL: "/images/FAMILYMEAL/Fiestameal.PNG",
+  MERYENDA: "/images/MERYENDA/Pancitpalabok.png",
+  PANGHIMAGAS: "/images/PANGHIMAGAS/Lecheflan.png",
+  RICEMEAL: "/images/RICEMEAL/Bistek.png",
+  WHATSNEW: "/images/WHATSNEW/Logo.png",
+};
+
+// ✅ Get categories
 export const listCategories = async (dispatch) => {
   dispatch({ type: CATEGORY_LIST_REQUEST });
   try {
     const { data } = await axiosInstance.get("/categories");
-    dispatch({ type: CATEGORY_LIST_SUCCESS, payload: data });
+    const mapped = data.map((category) => ({
+      name: category,
+      image: categoryImageMap[category.toUpperCase()] || "/images/default.png",
+    }));
+    dispatch({ type: CATEGORY_LIST_SUCCESS, payload: mapped });
   } catch (error) {
     dispatch({
       type: CATEGORY_LIST_FAIL,
@@ -67,36 +65,78 @@ export const listCategories = async (dispatch) => {
   }
 };
 
-// ✅ Get Menu Items per Category
-export const listProducts = async (dispatch, categoryName = "WHATs_NEW") => {
+// ✅ Normalize filename for better matching
+const normalizeImagePath = (category, itemName) => {
+  const baseName = itemName
+    .replaceAll("&", "and")
+    .replaceAll(" ", "")
+    .replaceAll("-", "")
+    .replaceAll("(", "")
+    .replaceAll(")", "")
+    .replaceAll(".", "")
+    .replaceAll("/", "")
+    .trim();
+
+  const variations = [
+    baseName,
+    baseName.toLowerCase(),
+    baseName.toUpperCase(),
+    baseName.charAt(0).toUpperCase() + baseName.slice(1),
+  ];
+
+  const extensions = [".png", ".PNG", ".jpg", ".JPG"];
+
+  const candidates = [];
+  variations.forEach((name) => {
+    extensions.forEach((ext) => {
+      candidates.push(`/images/${category}/${name}${ext}`);
+    });
+  });
+
+  return candidates;
+};
+
+// ✅ Get menu products per category
+export const listProducts = async (dispatch, categoryName = "WHATSNEW") => {
   dispatch({ type: PRODUCT_LIST_REQUEST });
+
   try {
-    const { data } = await axiosInstance.get(`/${categoryName}/menu`);
-    dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
+    const { data } = await axiosInstance.get(`/${categoryName}/menu`, {
+      params: { sortOrder: "default" },
+    });
+
+    const withImages = data.map((product) => {
+      const possibleImages = normalizeImagePath(
+        categoryName.toUpperCase(),
+        product.itemName
+      );
+
+      // First valid possible path or fallback
+      return {
+        ...product,
+        image: possibleImages[0] || "/images/default.png",
+      };
+    });
+
+    dispatch({ type: PRODUCT_LIST_SUCCESS, payload: withImages });
   } catch (error) {
+    console.error("Error fetching products:", error);
     dispatch({
       type: PRODUCT_LIST_FAIL,
-      payload: error.message || "Failed to fetch menu items",
+      payload: error.message || "Failed to fetch menu",
     });
   }
 };
 
-export const addToOrder = async (dispatch, item) => {
-  return dispatch({
-    type: ORDER_ADD_ITEM,
-    payload: item,
-  });
+// ✅ Order actions
+export const addToOrder = (dispatch, item) => {
+  dispatch({ type: ORDER_ADD_ITEM, payload: item });
 };
 
-export const removeFromOrder = async (dispatch, item) => {
-  return dispatch({
-    type: ORDER_REMOVE_ITEM,
-    payload: item,
-  });
+export const removeFromOrder = (dispatch, item) => {
+  dispatch({ type: ORDER_REMOVE_ITEM, payload: item });
 };
 
-export const clearOrder = async (dispatch) => {
-  return dispatch({
-    type: ORDER_CLEAR,
-  });
+export const clearOrder = (dispatch) => {
+  dispatch({ type: ORDER_CLEAR });
 };
