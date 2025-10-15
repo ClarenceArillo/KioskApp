@@ -1,26 +1,52 @@
 import axios from 'axios';
 import {
-  CATEGORY_LIST_FAIL,
-  CATEGORY_LIST_REQUEST,
-  CATEGORY_LIST_SUCCESS,
   ORDER_SET_TYPE,
-  PRODUCT_LIST_FAIL,
+  CATEGORY_LIST_REQUEST,
+  CATEGORY_LIST_FAIL,
+  CATEGORY_LIST_SUCCESS,
   PRODUCT_LIST_REQUEST,
   PRODUCT_LIST_SUCCESS,
-} from "./constants";
+  PRODUCT_LIST_FAIL,
+  ORDER_ADD_ITEM,
+  ORDER_REMOVE_ITEM,
+  ORDER_CLEAR,
+  ORDER_SET_PAYMENT_TYPE,
+  ORDER_CREATE_REQUEST,
+  ORDER_CREATE_FAIL,
+  ORDER_CREATE_SUCCESS,
+  ORDER_LIST_REQUEST,
+  ORDER_LIST_FAIL,
+  ORDER_LIST_SUCCESS,
+  SCREEN_SET_WIDTH,
+  ORDER_QUEUE_LIST_REQUEST,
+  ORDER_QUEUE_LIST_SUCCESS,
+  ORDER_QUEUE_LIST_FAIL,
+} from './constants';
 
-const API_BASE = "http://localhost:7000/order";
+// ✅ Use single axios instance for all backend requests
+const axiosInstance = axios.create({
+  baseURL: "http://localhost:7000/order",
+});
 
+
+// ✅ Use single axios instance for all backend requests
+const axiosInstance = axios.create({
+  baseURL: "http://localhost:7000/order",
+});
+
+// ✅ Start Order
 export const startOrder = async () => {
   try {
-    const response = await axios.post(`${API_BASE}/order/start`);
+    const response = await axiosInstance.post("/start");
     console.log("Order started:", response.data);
+    return response.data;
   } catch (error) {
-    console.error("Failed to start order:", error);
+    console.error("Failed to start order:", error.message);
+    throw error;
   }
 };
 
-
+// ✅ Set Order Type (DINE_IN / TAKE_OUT)
 export const setOrderType = (dispatch, orderType) => {
   return dispatch({
     type: ORDER_SET_TYPE,
@@ -31,19 +57,46 @@ export const setOrderType = (dispatch, orderType) => {
 export const listCategories = async (dispatch) => {
   dispatch({ type: CATEGORY_LIST_REQUEST });
   try {
-    const { data } = await axios.get(`${API_BASE}/categories`);
+    const { data } = await axiosInstance.get("/categories");
     dispatch({ type: CATEGORY_LIST_SUCCESS, payload: data });
   } catch (error) {
-    dispatch({ type: CATEGORY_LIST_FAIL, payload: error.message });
+    dispatch({
+      type: CATEGORY_LIST_FAIL,
+      payload: error.message || "Failed to fetch categories",
+    });
   }
 };
 
-export const listProducts = async (dispatch, categoryName = 'WHATs_NEW') => {
+// ✅ Get Menu Items per Category
+export const listProducts = async (dispatch, categoryName = "WHATs_NEW") => {
   dispatch({ type: PRODUCT_LIST_REQUEST });
   try {
-    const { data } = await axios.get(`${API_BASE}/${categoryName}/menu`);
+    const { data } = await axiosInstance.get(`/${categoryName}/menu`);
     dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
   } catch (error) {
-    dispatch({ type: PRODUCT_LIST_FAIL, payload: error.message });
+    dispatch({
+      type: PRODUCT_LIST_FAIL,
+      payload: error.message || "Failed to fetch menu items",
+    });
   }
+};
+
+export const addToOrder = async (dispatch, item) => {
+  return dispatch({
+    type: ORDER_ADD_ITEM,
+    payload: item,
+  });
+};
+
+export const removeFromOrder = async (dispatch, item) => {
+  return dispatch({
+    type: ORDER_REMOVE_ITEM,
+    payload: item,
+  });
+};
+
+export const clearOrder = async (dispatch) => {
+  return dispatch({
+    type: ORDER_CLEAR,
+  });
 };
