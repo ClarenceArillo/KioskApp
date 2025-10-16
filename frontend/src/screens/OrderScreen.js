@@ -54,6 +54,8 @@ export default function OrderScreen(props) {
 
   const productClickHandler = (p) => {
     setProduct(p);
+    const existing = orderItems.find((x) => x.name === p.name);
+    setQuantity(existing ? existing.quantity : 1);
     setIsOpen(true);
   };
 
@@ -344,7 +346,7 @@ export default function OrderScreen(props) {
             fullWidth
             disabled={orderItems.length === 0}
           >
-            Done
+            View Order
           </Button>
         </Box>
       </Box>
