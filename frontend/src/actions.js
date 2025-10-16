@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
   ORDER_SET_TYPE,
+  ORDER_SET_PAYMENT_TYPE,
   CATEGORY_LIST_REQUEST,
   CATEGORY_LIST_FAIL,
   CATEGORY_LIST_SUCCESS,
@@ -142,9 +143,33 @@ export const listProducts = async (dispatch, categoryName = "WHATS_NEW") => {
 };
 
 // ✅ Order actions
-export const addToOrder = (dispatch, item) => {
-  dispatch({ type: ORDER_ADD_ITEM, payload: item });
-};
+export const addToOrder = async (dispatch, product) => {
+    try {
+      console.log("🧾 Adding item to backend cart:", product);
+      const response = await fetch("http://localhost:7000/order/cart/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          itemId: product.id,
+          itemName: product.name,
+          itemPrice: product.price,
+          itemQuantity: product.quantity,
+          itemSize: product.size || "S",
+          itemCategorySelected: product.category || "DESSERT"
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to sync with backend");
+
+      const data = await response.json();
+      console.log("✅ Item synced with backend:", product.itemName);
+      dispatch({ type: "ORDER_ADD_ITEM", payload: product });
+    } catch (error) {
+      console.error("❌ Failed to sync with backend:", error);
+      alert("Failed to add item to backend cart.");
+    }
+  };
+
 
 export const removeFromOrder = (dispatch, item) => {
   dispatch({ type: ORDER_REMOVE_ITEM, payload: item });
@@ -153,3 +178,11 @@ export const removeFromOrder = (dispatch, item) => {
 export const clearOrder = (dispatch) => {
   dispatch({ type: ORDER_CLEAR });
 };
+
+export const setPaymentType = (dispatch, paymentType) => {
+  dispatch({
+    type: ORDER_SET_PAYMENT_TYPE,
+    payload: paymentType,
+  });
+};
+

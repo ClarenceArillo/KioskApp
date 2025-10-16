@@ -35,15 +35,97 @@ export default function ReviewScreen() {
     setProduct(p);
     setIsOpen(true);
   };
-  const addToOrderHandler = () => {
-    addToOrder(dispatch, { ...product, quantity });
-    setIsOpen(false);
+  const addToOrderHandler = async () => {
+    try {
+      // Add to local state
+      addToOrder(dispatch, { ...product, quantity });
+      setIsOpen(false);
+
+      // Sync with backend
+      await fetch(`http://localhost:7000/order/${product.itemCategorySelected}/${product.itemId}/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...product,
+          itemQuantity: quantity,
+        }),
+      });
+      console.log("✅ Synced item to backend cart:", product.name);
+    } catch (error) {
+      console.error("❌ Failed to sync item to backend:", error);
+    }
   };
-  const cancelOrRemoveFromOrder = () => {
-    removeFromOrder(dispatch, product);
-    setIsOpen(false);
+
+  const cancelOrRemoveFromOrder = async () => {
+    try {
+      // Remove from frontend state
+      removeFromOrder(dispatch, product);
+      setIsOpen(false);
+
+      // Remove from backend cart
+      const response = await fetch("http://localhost:7000/order/cart/view/remove", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: product.itemId }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Failed to remove item:", errorText);
+        alert("Failed to remove item from backend cart.");
+      } else {
+        console.log("✅ Item removed from backend cart:", product.name);
+      }
+    } catch (error) {
+      console.error("❌ Error removing item from backend:", error);
+      alert("Something went wrong while removing item.");
+    }
   };
-  const proceedToCheckoutHandler = () => navigate('/payment');
+
+  
+  const proceedToCheckoutHandler = async () => {
+    try {
+      const response = await fetch("http://localhost:7000/order/cart/view/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Checkout failed:", errorText);
+        alert("Checkout failed. Please add items first.");
+        return;
+      }
+
+      console.log("✅ Checkout successful!");
+      navigate("/payment");
+    } catch (error) {
+      console.error("❌ Checkout error:", error);
+      alert("Checkout failed. Please try again.");
+    }
+  };
+
+  const cancelOrderHandler = async () => {
+    try {
+      const response = await fetch("http://localhost:7000/order/cart/view/cancel", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        alert("Order cancelled successfully!");
+        dispatch({ type: "ORDER_CLEAR" }); // clear frontend store
+        navigate("/"); // Go back to home
+      } else {
+        const errorText = await response.text();
+        console.error("❌ Cancel failed:", errorText);
+        alert("Failed to cancel order. Please try again.");
+      }
+    } catch (error) {
+      console.error("❌ Error cancelling order:", error);
+      alert("Something went wrong while cancelling order.");
+    }
+  };
+
 
   return (
     <Box className={styles.root}>
@@ -124,26 +206,44 @@ export default function ReviewScreen() {
         </Grid>
       </Box>
 
-      <Box>
-        <Box className={`${styles.bordered} ${styles.space}`}>
-          My Order - {orderType === 'takeout' ? 'Take out' : 'Eat in'} | Total: ₱{totalPrice} | Items: {itemsCount}
-        </Box>
+      <Box className={`${styles.row} ${styles.around}`}>
+            <Button
+              onClick={() => navigate('/order')}
+              variant="contained"
+              color="primary"
+              className={styles.largeButton}
+            >
+              Back
+            </Button>
 
-        <Box className={`${styles.row} ${styles.around}`}>
-          <Button onClick={() => navigate('/order')} variant="contained" color="primary" className={styles.largeButton}>
-            Back
-          </Button>
-          <Button
-            onClick={proceedToCheckoutHandler}
-            variant="contained"
-            color="secondary"
-            disabled={orderItems.length === 0}
-            className={styles.largeButton}
-          >
-            Proceed To Checkout
-          </Button>
-        </Box>
-      </Box>
+            <Button
+              onClick={proceedToCheckoutHandler}
+              variant="contained"
+              color="secondary"
+              disabled={orderItems.length === 0}
+              className={styles.largeButton}
+            >
+              Proceed To Checkout
+            </Button>
+
+            <Button
+              onClick={cancelOrderHandler}
+              variant="contained"
+              color="error"
+              className={styles.largeButton}
+              style={{
+                backgroundColor: '#b71c1c',
+                color: 'white',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                transition: '0.3s',
+              }}
+              onMouseEnter={(e) => (e.target.style.backgroundColor = '#d32f2f')}
+              onMouseLeave={(e) => (e.target.style.backgroundColor = '#b71c1c')}
+            >
+              Cancel Order
+            </Button>
+          </Box>
     </Box>
   );
 }
