@@ -40,11 +40,11 @@ export const setOrderType = (dispatch, orderType) => {
 // ✅ Category representative images
 const categoryImageMap = {
   ALMUSAL:    "/images/ALMUSAL/Tapsilog.PNG",
-  FAMILYMEAL: "images/FAMILYMEAL/FiestaMeal.PNG",
+  FAMILY_MEAL: "images/FAMILYMEAL/FiestaMeal.PNG",
   MERYENDA:   "/images/MERYENDA/Pancitpalabok.png",
   PANGHIMAGAS:"/images/PANGHIMAGAS/Lecheflan.png",
-  RICEMEAL:   "images/RICEMEAL/Porkbbq.png",
-  WHATSNEW:   "images/WHATSNEW/Champorado_puto.PNG",
+  RICE_MEAL:   "images/RICEMEAL/Porkbbq.png",
+  WHATS_NEW:   "/images/WHATSNEW/Champorado_puto.PNG",
 };
 
 // ✅ Get categories
@@ -98,7 +98,7 @@ const normalizeImagePath = (category, itemName) => {
 };
 
 // ✅ Get menu products per category
-export const listProducts = async (dispatch, categoryName = "WHATSNEW") => {
+export const listProducts = async (dispatch, categoryName = "WHATS_NEW") => {
   dispatch({ type: PRODUCT_LIST_REQUEST });
 
   try {

@@ -1,6 +1,6 @@
 const categories = [
   {
-    name: "WHATs_NEW", // Changed from "WHATs_NEW" to match backend
+    name: "WHATS_NEW", // Changed from "WHATs_NEW" to match backend
     displayName: "What's New",
     image: "/images/WHATSNEW/Champorado_puto.PNG", // Fixed path
   },
