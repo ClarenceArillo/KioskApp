@@ -33,10 +33,9 @@ const initialState = {
   order: {
     orderType: 'Eat in',
     orderItems: [],
-    paymentType: 'Pay here',
+    paymentType: 'Cashless Pay here',
   },
   orderCreate: { loading: true },
-
   orderList: { loading: true },
 };
 
@@ -47,6 +46,7 @@ function reducer(state, action) {
         ...state,
         widthScreen: true,
       };
+
     case CATEGORY_LIST_REQUEST:
       return { ...state, categoryList: { loading: true } };
     case CATEGORY_LIST_SUCCESS:
@@ -59,6 +59,7 @@ function reducer(state, action) {
         ...state,
         categoryList: { loading: false, error: action.payload },
       };
+
     case PRODUCT_LIST_REQUEST:
       return { ...state, productList: { loading: true } };
     case PRODUCT_LIST_SUCCESS:
@@ -71,16 +72,19 @@ function reducer(state, action) {
         ...state,
         productList: { loading: false, error: action.payload },
       };
+
     case ORDER_SET_TYPE:
       return {
         ...state,
         order: { ...state.order, orderType: action.payload },
       };
+
     case ORDER_SET_PAYMENT_TYPE:
       return {
         ...state,
         order: { ...state.order, paymentType: action.payload },
       };
+
     case ORDER_ADD_ITEM: {
       const item = action.payload;
       const existItem = state.order.orderItems.find(
@@ -97,20 +101,20 @@ function reducer(state, action) {
         (a, c) => a + c.quantity * c.price,
         0
       );
-      const taxPrice = Math.round(0.15 * itemsPrice * 100) / 100;
-      const totalPrice = Math.round((itemsPrice + taxPrice) * 100) / 100;
+
+      const totalPrice = Math.round(itemsPrice * 100) / 100;
 
       return {
         ...state,
         order: {
           ...state.order,
           orderItems,
-          taxPrice,
           totalPrice,
           itemsCount,
         },
       };
     }
+
     case ORDER_REMOVE_ITEM: {
       const orderItems = state.order.orderItems.filter(
         (x) => x.name !== action.payload.name
@@ -120,15 +124,14 @@ function reducer(state, action) {
         (a, c) => a + c.quantity * c.price,
         0
       );
-      const taxPrice = Math.round(0.15 * itemsPrice * 100) / 100;
-      const totalPrice = Math.round((itemsPrice + taxPrice) * 100) / 100;
+
+      const totalPrice = Math.round(itemsPrice * 100) / 100;
 
       return {
         ...state,
         order: {
           ...state.order,
           orderItems,
-          taxPrice,
           totalPrice,
           itemsCount,
         },
@@ -140,11 +143,26 @@ function reducer(state, action) {
         ...state,
         order: {
           orderItems: [],
-          taxPrice: 0,
           totalPrice: 0,
           itemsCount: 0,
         },
       };
+
+    case ORDER_CREATE_REQUEST:
+      return { ...state, orderCreate: { loading: true } };
+    case ORDER_CREATE_SUCCESS:
+      return {
+        ...state,
+        orderCreate: { loading: false, newOrder: action.payload },
+      };
+    case ORDER_CREATE_FAIL:
+      return {
+        ...state,
+        orderCreate: { loading: false, error: action.payload },
+      };
+
+    default:
+      return state;
   }
 }
 
