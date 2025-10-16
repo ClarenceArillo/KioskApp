@@ -320,7 +320,7 @@ export default function OrderScreen(props) {
             mb: 2,
           }}
         >
-          My Order - {orderType} | Tax: ${taxPrice} | Total: ${totalPrice} | Items: {itemsCount}
+          My Order -  {orderType}   |      Total:  ₱{totalPrice}      | Items:  {itemsCount}
         </Box>
 
         <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>

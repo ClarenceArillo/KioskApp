@@ -1,5 +1,16 @@
-import { Box, Button, Card, CardActionArea, CardContent, Dialog, DialogTitle, Grid, TextField, Typography } from '@mui/material';
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState } from 'react';
+import {
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  Dialog,
+  DialogTitle,
+  Grid,
+  TextField,
+  Typography,
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { Store } from '../Store';
@@ -8,23 +19,18 @@ import { useStyles } from '../styles';
 import Logo from '../components/Logo';
 import { useNavigate } from 'react-router-dom';
 
-export default function ReviewScreen(props) {
+export default function ReviewScreen() {
   const { state, dispatch } = useContext(Store);
   const navigate = useNavigate();
-  const {
-    orderItems,
-    itemsCount,
-    totalPrice,
-    taxPrice,
-    orderType,
-  } = state.order;
+  const styles = useStyles();
+
+  const { orderItems, itemsCount, totalPrice, orderType } = state.order;
 
   const [quantity, setQuantity] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
   const [product, setProduct] = useState({});
-  const closeHandler = () => {
-    setIsOpen(false);
-  };
+
+  const closeHandler = () => setIsOpen(false);
   const productClickHandler = (p) => {
     setProduct(p);
     setIsOpen(true);
@@ -37,55 +43,34 @@ export default function ReviewScreen(props) {
     removeFromOrder(dispatch, product);
     setIsOpen(false);
   };
-  const proceedToCheckoutHandler = () => {
-    navigate('/payment');
-  };
+  const proceedToCheckoutHandler = () => navigate('/payment');
 
-  const styles = useStyles();
   return (
-    <Box className={[styles.root]}>
-      <Box className={[styles.main, styles.red, styles.center]}>
-        <Dialog
-          maxWidth="sm"
-          fullWidth={true}
-          open={isOpen}
-          onClose={closeHandler}
-        >
-          <DialogTitle className={styles.center}>
-            Add {product.name}
-          </DialogTitle>
-          <Box className={[styles.row, styles.center]}>
+    <Box className={styles.root}>
+      <Box className={`${styles.main} ${styles.red} ${styles.center}`}>
+        <Dialog maxWidth="sm" fullWidth open={isOpen} onClose={closeHandler}>
+          <DialogTitle className={styles.center}>Add {product.name}</DialogTitle>
+          <Box className={`${styles.row} ${styles.center}`}>
             <Button
               variant="contained"
               color="primary"
               disabled={quantity === 1}
-              onClick={(e) => quantity > 1 && setQuantity(quantity - 1)}
+              onClick={() => quantity > 1 && setQuantity(quantity - 1)}
             >
               <RemoveIcon />
             </Button>
             <TextField
-              inputProps={{ className: styles.largeInput }}
-              InputProps={{
-                bar: true,
-                inputProps: {
-                  className: styles.largeInput,
-                },
-              }}
+              inputProps={{ className: styles.largeInput, min: 1 }}
               className={styles.largeNumber}
               type="number"
               variant="filled"
-              min={1}
               value={quantity}
             />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={(e) => setQuantity(quantity + 1)}
-            >
+            <Button variant="contained" color="primary" onClick={() => setQuantity(quantity + 1)}>
               <AddIcon />
             </Button>
           </Box>
-          <Box className={[styles.row, styles.around]}>
+          <Box className={`${styles.row} ${styles.around}`}>
             <Button
               onClick={cancelOrRemoveFromOrder}
               variant="contained"
@@ -93,11 +78,8 @@ export default function ReviewScreen(props) {
               size="large"
               className={styles.largeButton}
             >
-              {orderItems.find((x) => x.name === product.name)
-                ? 'Remove From Order'
-                : 'Cancel'}
+              {orderItems.find((x) => x.name === product.name) ? 'Remove From Order' : 'Cancel'}
             </Button>
-
             <Button
               onClick={addToOrderHandler}
               variant="contained"
@@ -109,51 +91,29 @@ export default function ReviewScreen(props) {
             </Button>
           </Box>
         </Dialog>
-        <Box className={[styles.center, styles.column]}>
-          <Logo large></Logo>
-          <Typography
-            gutterBottom
-            className={styles.title}
-            variant="h3"
-            component="h3"
-          >
+
+        <Box className={`${styles.center} ${styles.column}`}>
+          <Logo large />
+          <Typography gutterBottom className={styles.title} variant="h3">
             Review my {orderType} order
           </Typography>
         </Box>
+
         <Grid container>
           {orderItems.map((orderItem) => (
             <Grid item md={12} key={orderItem.name}>
-              <Card
-                className={styles.card}
-                onClick={() => productClickHandler(orderItem)}
-              >
+              <Card className={styles.card} onClick={() => productClickHandler(orderItem)}>
                 <CardActionArea>
                   <CardContent>
-                    <Box className={[styles.row, styles.between]}>
-                      <Typography
-                        gutterBottom
-                        variant="body2"
-                        color="textPrimary"
-                        component="p"
-                      >
+                    <Box className={`${styles.row} ${styles.between}`}>
+                      <Typography variant="body2" color="textPrimary">
                         {orderItem.name}
                       </Typography>
                       <Button variant="contained">Edit</Button>
                     </Box>
-                    <Box className={[styles.row, styles.between]}>
-                      <Typography
-                        variant="body2"
-                        color="textSecondary"
-                        component="p"
-                      >
-                        {orderItem.calorie} Cal
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="textPrimary"
-                        component="p"
-                      >
-                        {orderItem.quantity} x ${orderItem.price}
+                    <Box className={`${styles.row} ${styles.between}`}>
+                      <Typography variant="body2" color="textPrimary">
+                        {orderItem.quantity} x ₱{orderItem.price}
                       </Typography>
                     </Box>
                   </CardContent>
@@ -163,37 +123,27 @@ export default function ReviewScreen(props) {
           ))}
         </Grid>
       </Box>
+
       <Box>
-        <Box>
-          <Box className={[styles.bordered, styles.space]}>
-            My Order - {orderType === 'takeout' ? 'Take out' : 'Eat in'} | Tax:
-            ${taxPrice} | Total: ${totalPrice} | Items: {itemsCount}
-          </Box>
-          <Box className={[styles.row, styles.around]}>
-            <Button
-              onClick={() => {
-                props.history.push(`/order`);
-              }}
-              variant="contained"
-              color="primary"
-              className={styles.largeButton}
-            >
-              Back
-            </Button>
-            <Button
-              onClick={proceedToCheckoutHandler}
-              variant="contained"
-              color="secondary"
-              disabled={orderItems.length === 0}
-              className={styles.largeButton}
-            >
-              Proceed To Checkout
-            </Button>
-          </Box>
+        <Box className={`${styles.bordered} ${styles.space}`}>
+          My Order - {orderType === 'takeout' ? 'Take out' : 'Eat in'} | Total: ₱{totalPrice} | Items: {itemsCount}
+        </Box>
+
+        <Box className={`${styles.row} ${styles.around}`}>
+          <Button onClick={() => navigate('/order')} variant="contained" color="primary" className={styles.largeButton}>
+            Back
+          </Button>
+          <Button
+            onClick={proceedToCheckoutHandler}
+            variant="contained"
+            color="secondary"
+            disabled={orderItems.length === 0}
+            className={styles.largeButton}
+          >
+            Proceed To Checkout
+          </Button>
         </Box>
       </Box>
     </Box>
   );
 }
-
-

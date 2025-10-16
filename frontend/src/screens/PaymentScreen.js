@@ -6,13 +6,12 @@ import { setPaymentType } from '../actions';
 import { Store } from '../Store';
 import { useNavigate } from 'react-router-dom';
 
-export default function PaymentMethodScreen(props) {
+export default function PaymentMethodScreen() {
   const styles = useStyles();
   const { dispatch } = useContext(Store);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Automatically set payment type when screen loads
     setPaymentType(dispatch, 'Cashless (QR Payment)');
   }, [dispatch]);
 
@@ -24,7 +23,6 @@ export default function PaymentMethodScreen(props) {
     <Box className={`${styles.root} ${styles.navy}`}>
       <Box className={`${styles.main} ${styles.center}`}>
         <Logo large />
-
         <Typography variant="h3" gutterBottom>
           Payment Method
         </Typography>
@@ -32,45 +30,23 @@ export default function PaymentMethodScreen(props) {
           Cashless Payment
         </Typography>
 
-        {/* QR Code container */}
         <Box
           className={styles.center}
-          style={{
-            backgroundColor: '#fff',
-            borderRadius: '16px',
-            padding: '24px',
-            marginTop: '20px',
-          }}
+          style={{ backgroundColor: '#fff', borderRadius: '16px', padding: '24px', marginTop: '20px' }}
         >
           <img
-            src="/images/qrcode.png" // Replace with your actual QR code
+            src="/images/qrcode.png"
             alt="QR Code"
-            style={{
-              width: '250px',
-              height: '250px',
-              objectFit: 'contain',
-            }}
+            style={{ width: '250px', height: '250px', objectFit: 'contain' }}
           />
         </Box>
 
-        <Typography
-          variant="h6"
-          style={{
-            marginTop: '20px',
-            color: '#fff',
-          }}
-        >
+        <Typography variant="h6" style={{ marginTop: '20px', color: '#fff' }}>
           Scan the QR code to pay
         </Typography>
 
-        {/* Confirm Payment Button */}
         <Box className={`${styles.center} ${styles.space}`} style={{ marginTop: '40px' }}>
-          <Button
-            onClick={confirmHandler}
-            variant="contained"
-            color="primary"
-            className={styles.largeButton}
-          >
+          <Button onClick={confirmHandler} variant="contained" color="primary" className={styles.largeButton}>
             Confirm Payment
           </Button>
         </Box>

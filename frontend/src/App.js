@@ -6,7 +6,8 @@ import ChooseScreen from "./screens/ChooseScreen";
 import OrderScreen from "./screens/OrderScreen";
 import ReviewScreen from "./screens/ReviewScreen";
 import PaymentScreen from "./screens/PaymentScreen";
-import ReceiptScreen from "./screens/ReviewScreen";
+import ReceiptScreen from "./screens/ReceiptScreen";
+import OrderCompleteScreen from "./screens/OrderCompleteScreen";
 
 const theme = createTheme({
   typography: {
@@ -43,6 +44,7 @@ function App() {
             <Route path="/review" element={<ReviewScreen />} />
             <Route path="/payment" element={<PaymentScreen />} />
             <Route path="/receipt" element={<ReceiptScreen />} /> 
+            <Route path="/completeorder" element={<OrderCompleteScreen />} />
           </Routes>
         </div>
       </BrowserRouter>
