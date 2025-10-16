@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
   ORDER_SET_TYPE,
+  ORDER_SET_PAYMENT_TYPE,
   CATEGORY_LIST_REQUEST,
   CATEGORY_LIST_FAIL,
   CATEGORY_LIST_SUCCESS,
@@ -153,3 +154,11 @@ export const removeFromOrder = (dispatch, item) => {
 export const clearOrder = (dispatch) => {
   dispatch({ type: ORDER_CLEAR });
 };
+
+export const setPaymentType = (dispatch, paymentType) => {
+  dispatch({
+    type: ORDER_SET_PAYMENT_TYPE,
+    payload: paymentType,
+  });
+};
+
