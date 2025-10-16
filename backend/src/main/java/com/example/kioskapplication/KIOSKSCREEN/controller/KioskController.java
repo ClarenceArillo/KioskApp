@@ -36,11 +36,16 @@ public class KioskController {
     }
 
     @GetMapping("/{category}/menu")
-    public List<MenuItem> getMenuItemPerCategory(
+    public ResponseEntity<?> getMenuItemPerCategory(
             @PathVariable MenuItemCategory category,
-            @RequestParam(defaultValue = "default") String sortOrder // ?sortOrder=asc / desc / default
+            @RequestParam(defaultValue = "default") String sortOrder
     ) {
-        return kioskScreenService.getAllMenuItemsPerCategory(category, sortOrder);
+        try {
+            List<MenuItem> items = kioskScreenService.getAllMenuItemsPerCategory(category, sortOrder);
+            return ResponseEntity.ok(items);
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).body("Server error: " + ex.getMessage());
+        }
     }
 
 
