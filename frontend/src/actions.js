@@ -39,12 +39,12 @@ export const setOrderType = (dispatch, orderType) => {
 
 // ✅ Category representative images
 const categoryImageMap = {
-  ALMUSAL: "/images/ALMUSAL/Tapsilog.png",
-  FAMILYMEAL: "/images/FAMILYMEAL/Fiestameal.PNG",
-  MERYENDA: "/images/MERYENDA/Pancitpalabok.png",
-  PANGHIMAGAS: "/images/PANGHIMAGAS/Lecheflan.png",
-  RICEMEAL: "/images/RICEMEAL/Bistek.png",
-  WHATSNEW: "/images/WHATSNEW/Logo.png",
+  ALMUSAL:    "/images/ALMUSAL/Tapsilog.PNG",
+  FAMILYMEAL: "images/FAMILYMEAL/FiestaMeal.PNG",
+  MERYENDA:   "/images/MERYENDA/Pancitpalabok.png",
+  PANGHIMAGAS:"/images/PANGHIMAGAS/Lecheflan.png",
+  RICEMEAL:   "images/RICEMEAL/Porkbbq.png",
+  WHATSNEW:   "images/WHATSNEW/Champorado_puto.PNG",
 };
 
 // ✅ Get categories
@@ -81,18 +81,19 @@ const normalizeImagePath = (category, itemName) => {
     baseName,
     baseName.toLowerCase(),
     baseName.toUpperCase(),
-    baseName.charAt(0).toUpperCase() + baseName.slice(1),
+    baseName.charAt(0).toUpperCase() + baseName.slice(1).toLowerCase(),
   ];
 
-  const extensions = [".png", ".PNG", ".jpg", ".JPG"];
+  const extensions = [".png", ".PNG", ".jpg", ".JPG", ".jpeg", ".JPEG"];
 
   const candidates = [];
   variations.forEach((name) => {
     extensions.forEach((ext) => {
-      candidates.push(`/images/${category}/${name}${ext}`);
+      candidates.push(`/images/${category.toUpperCase()}/${name}${ext}`);
     });
   });
 
+  console.log(`Looking for ${itemName} in:`, candidates);
   return candidates;
 };
 
@@ -110,6 +111,11 @@ export const listProducts = async (dispatch, categoryName = "WHATSNEW") => {
         categoryName.toUpperCase(),
         product.itemName
       );
+
+      console.log(`Product: ${product.itemName}`, {
+        possibleImages,
+        selected: possibleImages[0]
+      });
 
       // First valid possible path or fallback
       return {

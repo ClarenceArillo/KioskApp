@@ -1,33 +1,33 @@
 const categories = [
   {
-    name: "WHATs_NEW",
+    name: "WHATs_NEW", // Changed from "WHATs_NEW" to match backend
     displayName: "What's New",
-    image: "/images/MERYENDA/Arroz caldo.png", // Champorado & Puto
+    image: "/images/WHATSNEW/Champorado_puto.PNG", // Fixed path
   },
   {
-    name: "FAMILY_MEAL",
-    displayName: "Family Meal",
-    image: "/images/FAMILYMEAL/Barkada bilao.PNG",
+    name: "FAMILY_MEAL", // Changed from "FAMILY_MEAL" to match backend
+    displayName: "Family Meal", 
+    image: "/images/FAMILYMEAL/FiestaMeal.PNG", // Fixed filename (no space)
   },
   {
-    name: "ALMUSAL",
+    name: "ALMUSAL", // This one is correct
     displayName: "Almusal",
-    image: "/images/ALMUSAL/Tapsilog.PNG",
+    image: "/images/ALMUSAL/Tapsilog.PNG", // This one is correct
   },
   {
-    name: "RICE_MEAL",
+    name: "RICE_MEAL", // Changed from "RICE_MEAL" to match backend
     displayName: "Rice Meal",
-    image: "/images/RICEMEAL/Pork bbq.png",
+    image: "/images/RICEMEAL/Porkbbq.png", // Fixed filename (no space)
   },
   {
-    name: "MERYENDA",
+    name: "MERYENDA", // Changed from "MERYENDA" to match actual folder name
     displayName: "Meryenda",
-    image: "/images/MERYENDA/Turon.png",
+    image: "/images/MERYENDA/Pancitpalabok.png", // Fixed path
   },
   {
-    name: "PANGHIMAGAS",
+    name: "PANGHIMAGAS", // This one is correct
     displayName: "Panghimagas",
-    image: "/images/PANGHIMAGAS/Halo-halo.png",
+    image: "/images/PANGHIMAGAS/Halo-halo.png", // This one is correct
   },
 ];
 
