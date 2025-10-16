@@ -28,12 +28,6 @@ const axiosInstance = axios.create({
   baseURL: "http://localhost:7000/order",
 });
 
-
-// ✅ Use single axios instance for all backend requests
-const axiosInstance = axios.create({
-  baseURL: "http://localhost:7000/order",
-});
-
 // ✅ Start Order
 export const startOrder = async () => {
   try {
@@ -98,5 +92,12 @@ export const removeFromOrder = async (dispatch, item) => {
 export const clearOrder = async (dispatch) => {
   return dispatch({
     type: ORDER_CLEAR,
+  });
+};
+
+export const setPaymentType = async (dispatch, paymentType) => {
+  return dispatch({
+    type: ORDER_SET_PAYMENT_TYPE,
+    payload: paymentType,
   });
 };

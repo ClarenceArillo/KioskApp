@@ -33,7 +33,7 @@ const initialState = {
   order: {
     orderType: 'Eat in',
     orderItems: [],
-    paymentType: 'Pay here',
+    paymentType: 'Cashless Pay here',
   },
   orderCreate: { loading: true },
 
