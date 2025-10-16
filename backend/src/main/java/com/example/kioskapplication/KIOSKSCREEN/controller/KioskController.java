@@ -48,10 +48,10 @@ public class KioskController {
         }
     }
 
-
-    @PostMapping("/{category}/{itemId}/add")
-    public List<MenuItem> addMenuItem(@PathVariable MenuItemCategory category,@PathVariable Long itemId,  @RequestBody MenuItem menuItem) {
-        return kioskScreenService.addMenuItemtoCart(menuItem);
+    @PostMapping("/cart/add")
+    public ResponseEntity<List<MenuItem>> addMenuItemToCart(@RequestBody MenuItem menuItem) {
+        List<MenuItem> updatedCart = kioskScreenService.addMenuItemtoCart(menuItem);
+        return ResponseEntity.ok(updatedCart);
     }
 
     @PutMapping("/cart/view/update")
