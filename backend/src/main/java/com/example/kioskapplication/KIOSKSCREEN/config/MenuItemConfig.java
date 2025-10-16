@@ -18,7 +18,7 @@ public class MenuItemConfig {
                 repo.save(new MenuItem(
                         0,
                         "Champorado with Tuyo",
-                        MenuItemCategory.WHATs_NEW,
+                        MenuItemCategory.WHATS_NEW,
                         1,
                         79.0,
                         "Thick, chocolatey champorado paired with crispy tuyo for that sweet and salty combo.",
@@ -28,7 +28,7 @@ public class MenuItemConfig {
                 repo.save(new MenuItem(
                         0,
                         "Champorado with Puto",
-                        MenuItemCategory.WHATs_NEW,
+                        MenuItemCategory.WHATS_NEW,
                         1,
                         75.0,
                         "Classic Filipino merienda — warm champorado served with soft, fluffy puto.",
@@ -38,7 +38,7 @@ public class MenuItemConfig {
                 repo.save(new MenuItem(
                         0,
                         "Sisig Rice Bowl",
-                        MenuItemCategory.WHATs_NEW,
+                        MenuItemCategory.WHATS_NEW,
                         1,
                         99.0,
                         "Sizzling pork sisig served over hot steamed rice, topped with egg.",
@@ -48,7 +48,7 @@ public class MenuItemConfig {
                 repo.save(new MenuItem(
                         0,
                         "Laing with Rice",
-                        MenuItemCategory.WHATs_NEW,
+                        MenuItemCategory.WHATS_NEW,
                         1,
                         89.0,
                         "Creamy and spicy Bicolano-style taro leaves cooked in coconut milk, served with rice.",
