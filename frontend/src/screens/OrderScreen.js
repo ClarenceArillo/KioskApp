@@ -59,10 +59,45 @@ export default function OrderScreen(props) {
     setIsOpen(true);
   };
 
-  const addToOrderhandler = () => {
-    addToOrder(dispatch, { ...product, quantity });
-    setIsOpen(false);
+  const addToOrderhandler = async () => {
+    try {
+      addToOrder(dispatch, { ...product, quantity });
+      setIsOpen(false);
+
+      console.log("🧾 Adding item to backend cart:", product);
+
+      if (!product.itemCategorySelected || !product.itemId) {
+        console.error("❌ Missing category or itemId:", product);
+        alert("Invalid item data. Please try again.");
+        return;
+      }
+
+      const response = await fetch(
+        `http://localhost:7000/order/${product.itemCategorySelected}/${product.itemId}/add`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...product,
+            itemQuantity: quantity,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Failed to sync with backend:", errorText);
+        alert("Failed to add item to backend cart.");
+      } else {
+        console.log("✅ Item synced with backend:", product.name);
+      }
+    } catch (error) {
+      console.error("❌ Add to cart error:", error);
+      alert("Something went wrong while adding to cart.");
+    }
   };
+
+
 
   const cancelOrRemoveFromOrder = () => {
     removeFromOrder(dispatch, product);
@@ -257,8 +292,15 @@ export default function OrderScreen(props) {
                       boxShadow: '0 6px 16px rgba(0,0,0,0.12)',
                     },
                   }}
-                  onClick={() => productClickHandler(product)}
+                  onClick={() =>
+                    productClickHandler({
+                      ...product,
+                      itemCategorySelected: categoryName, // ✅ include category for backend
+                      itemId: product.id || product.itemId, // ✅ ensure itemId is passed too
+                    })
+                  }
                 >
+
                   <CardActionArea>
                     <CardMedia
                       component="img"
