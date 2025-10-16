@@ -106,23 +106,30 @@ export const listProducts = async (dispatch, categoryName = "WHATS_NEW") => {
       params: { sortOrder: "default" },
     });
 
+    console.log("Fetched products:", data); // 👀 confirm we got items
+
     const withImages = data.map((product) => {
       const possibleImages = normalizeImagePath(
         categoryName.toUpperCase(),
         product.itemName
       );
 
-      console.log(`Product: ${product.itemName}`, {
-        possibleImages,
-        selected: possibleImages[0]
-      });
-
-      // First valid possible path or fallback
+      // ✅ Merge backend data into the structure React expects
       return {
-        ...product,
-        image: possibleImages[0] || "/images/default.png",
+        id: product.itemId,
+        name: product.itemName,
+        price: product.itemPrice,
+        description: product.itemDescription,
+        image:
+          product.itemImageUrl?.startsWith("http")
+            ? product.itemImageUrl
+            : `/${product.itemImageUrl.replace(/^\/?/, "")}`, // ensure leading slash for local images
+        size: product.itemSize,
+        category: product.itemCategorySelected,
       };
     });
+
+    console.log("Mapped products:", withImages); // 👀 verify correct shape
 
     dispatch({ type: PRODUCT_LIST_SUCCESS, payload: withImages });
   } catch (error) {
