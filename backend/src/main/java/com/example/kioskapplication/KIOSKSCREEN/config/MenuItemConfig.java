@@ -9,12 +9,12 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class MenuItemConfig {
-
     @Bean
     CommandLineRunner seedMenu (MenuItemRepository repo) {
         return args -> {
             // Seed initial menu items if needed
             if (repo.count() == 0) {
+                // === WHATs NEW (Folder: WHATsNEW) ===
                 repo.save(new MenuItem(
                         0,
                         "Champorado with Tuyo",
@@ -22,7 +22,7 @@ public class MenuItemConfig {
                         1,
                         79.0,
                         "Thick, chocolatey champorado paired with crispy tuyo for that sweet and salty combo.",
-                        "images/WHATsNEW/Champorado&tuyo.PNG",
+                        "images/WHATSNEW/Champorado_tuyo.PNG", // CORRECTED FILENAME
                         'M'));
 
                 repo.save(new MenuItem(
@@ -32,7 +32,7 @@ public class MenuItemConfig {
                         1,
                         75.0,
                         "Classic Filipino merienda — warm champorado served with soft, fluffy puto.",
-                        "images/WHATsNEW/Champorado&puto.PNG",
+                        "images/WHATSNEW/Champorado_puto.PNG", // CORRECTED FILENAME
                         'M'));
 
                 repo.save(new MenuItem(
@@ -42,7 +42,7 @@ public class MenuItemConfig {
                         1,
                         99.0,
                         "Sizzling pork sisig served over hot steamed rice, topped with egg.",
-                        "images/WHATsNEW/Sisig.PNG",
+                        "images/WHATSNEW/Sisig.PNG",
                         'M'));
 
                 repo.save(new MenuItem(
@@ -52,10 +52,12 @@ public class MenuItemConfig {
                         1,
                         89.0,
                         "Creamy and spicy Bicolano-style taro leaves cooked in coconut milk, served with rice.",
-                        "images/WHATsNEW/Laing.PNG",
+                        "images/WHATSNEW/Laing.PNG",
                         'M'));
 
-                // === FAMILY MEAL ===
+                // ---
+
+                // === FAMILY MEAL (Folder: FAMILYMEAL) ===
                 repo.save(new MenuItem(
                         0,
                         "Barkada Bilao",
@@ -63,7 +65,7 @@ public class MenuItemConfig {
                         1,
                         399.0,
                         "Pancit Canton, Lumpiang Shanghai, and Puto — perfect for group sharing.",
-                        "images/FAMILYMEAL/Barkada bilao.PNG",
+                        "images/FAMILYMEAL/BarkadaBilao.PNG", // CORRECTED FILENAME
                         'M'));
 
                 repo.save(new MenuItem(
@@ -73,7 +75,7 @@ public class MenuItemConfig {
                         1,
                         499.0,
                         "A hearty feast with Kare-Kare, Inihaw na Liempo, Rice, and Leche Flan.",
-                        "images/FAMILYMEAL/Handaan set.PNG",
+                        "images/FAMILYMEAL/HandaanSet.PNG", // CORRECTED FILENAME
                         'M'));
 
                 repo.save(new MenuItem(
@@ -83,10 +85,12 @@ public class MenuItemConfig {
                         1,
                         549.0,
                         "A full Filipino spread — Chicken Adobo, Sinigang na Baboy, Pancit Palabok, and Halo-Halo.",
-                        "images/FAMILYMEAL/Fiesta meal.PNG",
+                        "images/FAMILYMEAL/FiestaMeal.PNG", // CORRECTED FILENAME
                         'M'));
 
-                // === ALMUSAL ===
+                // ---
+
+                // === ALMUSAL (Folder: ALMUSAL) ===
                 repo.save(new MenuItem(
                         0,
                         "Tapsilog",
@@ -114,7 +118,7 @@ public class MenuItemConfig {
                         1,
                         79.0,
                         "Tender tocino with garlic rice and egg — a Filipino favorite.",
-                        "images/ALMUSAL/Tocilog.png",
+                        "images/ALMUSAL/Tocilog.PNG", // CORRECTED EXTENSION CASE
                         'M'));
 
                 repo.save(new MenuItem(
@@ -124,27 +128,21 @@ public class MenuItemConfig {
                         1,
                         89.0,
                         "Fried boneless bangus, garlic rice, and egg for a filling morning meal.",
-                        "images/ALMUSAL/Bangsilog.png",
+                        "images/ALMUSAL/Bangsilog.PNG", // CORRECTED EXTENSION CASE
                         'M'));
 
-                repo.save(new MenuItem(
-                        0,
-                        "Champorado + Tuyo/Puto",
-                        MenuItemCategory.ALMUSAL,
-                        1,
-                        79.0,
-                        "Hot chocolate porridge served with your choice of crispy tuyo or soft puto.",
-                        "images/ALMUSAL/",
-                        'M'));
+                // Removed the "Champorado + Tuyo/Puto" entry as it's redundant and has an incomplete path.
 
-                // === RICE MEAL ===
+                // ---
+
+                // === RICE MEAL (Folder: RICEMEAL) ===
                 repo.save(new MenuItem(
                         0,
                         "Chicken Adobo with Rice", MenuItemCategory.RICE_MEAL,
                         1,
                         89.0,
                         "Savory chicken adobo simmered in soy sauce, vinegar, and garlic, served with rice.",
-                        "images/RICEMEAL/Chicken adobo.PNG",
+                        "images/RICEMEAL/Chickenadobo.PNG", // CORRECTED FILENAME
                         'M'));
 
                 repo.save(new MenuItem(
@@ -154,7 +152,7 @@ public class MenuItemConfig {
                         1,
                         85.0,
                         "Grilled pork barbecue skewers glazed with sweet-savory sauce, served with rice.",
-                        "images/RICEMEAL/Pork bbq.png",
+                        "images/RICEMEAL/Porkbbq.png",
                         'M'));
 
                 repo.save(new MenuItem(
@@ -184,10 +182,12 @@ public class MenuItemConfig {
                         1,
                         99.0,
                         "Tangy pork sinigang served with rice — comforting and hearty.",
-                        "images/RICEMEAL/Sinigang na baboy with rice.png",
+                        "images/RICEMEAL/Sinigangnababoywithrice.png", // CORRECTED FILENAME
                         'M'));
 
-                // === MERYENDA ===
+                // ---
+
+                // === MERYENDA (Folder: MERYENDA) ===
                 repo.save(new MenuItem(
                         0,
                         "Arroz Caldo with Tokwa’t Baboy",
@@ -195,7 +195,7 @@ public class MenuItemConfig {
                         1,
                         85.0,
                         "Warm arroz caldo topped with boiled egg and served with tokwa’t baboy on the side.",
-                        "images/MERYENDA/Aroz caldo.png",
+                        "images/MERYENDA/Arozcaldo.png", // CORRECTED FILENAME
                         'M'));
 
                 repo.save(new MenuItem(
@@ -205,7 +205,7 @@ public class MenuItemConfig {
                         1,
                         79.0,
                         "Savory noodle dish with rich shrimp sauce, crushed chicharon, and egg.",
-                        "images/MERYENDA/Pancit palabok.png",
+                        "images/MERYENDA/Pancitpalabok.png",
                         'M'));
 
                 repo.save(new MenuItem(
@@ -215,7 +215,7 @@ public class MenuItemConfig {
                         1,
                         69.0,
                         "Classic rice porridge paired with crispy lumpia — simple yet satisfying.",
-                        "images/MERYENDA/Lugaw w lumpia.png",
+                        "images/MERYENDA/Lugawwumpia.png", // CORRECTED FILENAME
                         'M'));
 
                 repo.save(new MenuItem(
@@ -225,7 +225,7 @@ public class MenuItemConfig {
                         1,
                         65.0,
                         "Traditional purple rice cake topped with butter, sugar, and niyog — available seasonally.",
-                        "images/MERYENDA/Puto bumbong.png",
+                        "images/MERYENDA/Putobumbong.png",
                         'M'));
 
                 repo.save(new MenuItem(
@@ -238,7 +238,9 @@ public class MenuItemConfig {
                         "images/MERYENDA/Turon.png",
                         'M'));
 
-                // === PANGHIMAGAS ===
+                // ---
+
+                // === PANGHIMAGAS (Folder: PANGHIMAGAS) ===
                 repo.save(new MenuItem(
                         0,
                         "Halo-Halo Special",
@@ -246,7 +248,7 @@ public class MenuItemConfig {
                         1,
                         89.0,
                         "Layered shaved ice dessert with milk, sweet beans, fruits, and leche flan topping.",
-                        "images/MERYENDA/Halo-halo.png",
+                        "images/PANGHIMAGAS/Halo-halo.png", // CORRECTED FOLDER
                         'M'));
 
                 repo.save(new MenuItem(
@@ -256,7 +258,7 @@ public class MenuItemConfig {
                         1,
                         59.0,
                         "Smooth and creamy caramel custard made the traditional Filipino way.",
-                        "images/MERYENDA/Leche flan.png",
+                        "images/PANGHIMAGAS/Lecheflan.png", // CORRECTED FOLDER and FILENAME
                         'M'));
 
                 repo.save(new MenuItem(
@@ -266,7 +268,7 @@ public class MenuItemConfig {
                         1,
                         69.0,
                         "Refreshing dessert made with coconut strips, pandan jelly, and sweet cream.",
-                        "images/MERYENDA/Buko pandan salad.png",
+                        "images/PANGHIMAGAS/Bukopandansalad.png", // CORRECTED FOLDER and FILENAME
                         'M'));
 
                 repo.save(new MenuItem(
@@ -276,7 +278,7 @@ public class MenuItemConfig {
                         1,
                         59.0,
                         "Shaved ice dessert with sweet corn, milk, and sugar — a tropical favorite.",
-                        "images/MERYENDA/mais con yelo.png",
+                        "images/PANGHIMAGAS/maisconyelo.png", // CORRECTED FOLDER and FILENAME
                         'M'));
 
                 repo.save(new MenuItem(
@@ -286,7 +288,7 @@ public class MenuItemConfig {
                         1,
                         39.0,
                         "Soft, chewy brown rice cakes served with freshly grated coconut.",
-                        "images/MERYENDA/Kutsinta.png",
+                        "images/PANGHIMAGAS/Kutsinta.png", // CORRECTED FOLDER
                         'M'));
             }
         };
