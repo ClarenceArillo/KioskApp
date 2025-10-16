@@ -45,6 +45,8 @@ public class KioskScreenService implements KioskService{
     public void startOrder() {
         this.orderStarted = true;
         this.orderType = null;
+        this.isCheckout = false;
+        this.isPaid = false;
         this.orderStatus = OrderStatus.PENDING;
     }
 
@@ -150,10 +152,11 @@ public class KioskScreenService implements KioskService{
         this.orderStatus = OrderStatus.CANCELLED;
 
         if(orderStatus == null || orderStatus == OrderStatus.CANCELLED){
-            cartItems.clear();
+            this.cartItems.clear();
             this.orderStarted = false;
             this.orderType = null;
             this.isCheckout = false;
+            this.isPaid = false;
         }else{
             throw new IllegalStateException("Order cannot be cancelled at this stage.");
         }

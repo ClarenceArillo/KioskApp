@@ -78,9 +78,9 @@ public class KioskController {
     }
 
     @PostMapping("/cart/view/cancel")
-    public String cancelOrder() {
+    public ResponseEntity<String> cancelOrder() {
         kioskScreenService.cancelOrder(OrderStatus.CANCELLED);
-        return "Order cancelled";
+        return ResponseEntity.ok("✅ Order cancelled successfully. Cart cleared and state reset.");
     }
 
     @PostMapping("/cart/view/pay")
