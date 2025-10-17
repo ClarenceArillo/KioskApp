@@ -198,30 +198,27 @@ public class KioskScreenService implements KioskService{
                 .mapToDouble(item -> item.getItemPrice() * item.getItemQuantity())
                 .sum();
 
-        // Convert cart items to OrderItem entities
-        List<OrderItem> orderItems = cartItems.stream()
-                .map(item -> new OrderItem(
-                        item, // Use the MenuItem constructor
-                        item.getItemQuantity(),
-                        item.getItemSize()
-                ))
-                .collect(Collectors.toList());
-
         CustomerOrder order = new CustomerOrder();
         order.setOrderType(orderType);
-        order.setOrderStatus(OrderStatus.PENDING); // Set explicitly
-        order.setOrderDateTime(LocalDateTime.now()); // Use correct field name
+        order.setOrderStatus(OrderStatus.PENDING);
+        order.setOrderDateTime(LocalDateTime.now());
         order.setTotalPrice(totalPrice);
-        order.setPaid(true); // Use correct field name
-        order.setCheckout(true); // Use correct field name
+        order.setPaid(true);
+        order.setCheckout(true);
         order.setOrderStarted(true);
 
-        // Add all order items
-        orderItems.forEach(order::addOrderItem);
+        // convert and attach items
+        for (MenuItem menuItem : cartItems) {
+            OrderItem orderItem = new OrderItem(menuItem, menuItem.getItemQuantity(), menuItem.getItemSize());
+            // ensure bidirectional linkage
+            order.addOrderItem(orderItem); // addOrderItem should set order on item
+        }
 
-        // Save to database - NOT static call!
+        System.out.println("Saving order with total: " + totalPrice + " and " + order.getOrderItems().size() + " items.");
         return customerOrdersRepository.save(order);
     }
+
+
 
     public ReceiptDTO receiptPrintout(Integer orderId) {
         if (!isCheckout || !isPaid) {
@@ -249,10 +246,10 @@ public class KioskScreenService implements KioskService{
                 latestOrder.getOrderDateTime(), // Use correct getter
                 latestOrder.getTotalPrice(),
                 receiptItems,
-                "AYA",
+                "Aya sa Hapag - Makati",
                 "Makati Avenue, Poblacion, Makati City",
                 " (+63) 927-531-4820",
-                "ayamnl@gmail.com",
+                "ayasahapagmkt@gmail.com",
                 "/images/Logo.png"
         );
 

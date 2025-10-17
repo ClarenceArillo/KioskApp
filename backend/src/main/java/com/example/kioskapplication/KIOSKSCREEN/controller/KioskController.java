@@ -4,11 +4,15 @@ import com.example.kioskapplication.KIOSKSCREEN.model.*;
 import com.example.kioskapplication.KIOSKSCREEN.repository.MenuItemRepository;
 import com.example.kioskapplication.KIOSKSCREEN.service.KioskScreenService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/order")
@@ -101,26 +105,20 @@ public class KioskController {
     @GetMapping("/receipt/{orderId}")
     public ResponseEntity<?> getReceipt(@PathVariable Integer orderId) {
         try {
-            // ✅ Generate receipt first (this reads from DB, not in-memory cart)
             ReceiptDTO receipt = kioskScreenService.receiptPrintout(orderId);
-
-            // ✅ Return the receipt first so frontend gets it immediately
-            ResponseEntity<?> response = ResponseEntity.ok(receipt);
-
-            // ✅ Now safely reset state after sending response
-            new Thread(() -> {
-                try {
-                    Thread.sleep(1000); // small delay to ensure frontend has data
-                    kioskScreenService.completeOrder();
-                    System.out.println("🧹 Kiosk state cleared after receipt printing");
-                } catch (InterruptedException ignored) {}
-            }).start();
-
-            return response;
+            // do NOT clear state until after frontend receives it - do that asynchronously if needed
+            return ResponseEntity.ok(receipt);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (NoSuchElementException | IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Server error: " + e.getMessage()));
         }
     }
+
+
+
 
 
 
