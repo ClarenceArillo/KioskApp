@@ -15,8 +15,6 @@ public interface KioskService {
 
     //screen statics
     public List <MenuItemCategory> getMenuItemCategories();
-    public List<MenuItem> getAllMenuItemsPerCategory(MenuItemCategory category);
-
     //order screen functionalities
     public List<MenuItem> getAllMenuItemsPerCategory(MenuItemCategory category, String sortOrder);
     public List<MenuItem> addMenuItemtoCart(MenuItem menuItem);

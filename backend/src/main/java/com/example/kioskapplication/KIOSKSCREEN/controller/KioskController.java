@@ -48,11 +48,29 @@ public class KioskController {
         }
     }
 
-    @PostMapping("/cart/add")
-    public ResponseEntity<List<MenuItem>> addMenuItemToCart(@RequestBody MenuItem menuItem) {
+    @PostMapping("/{category}/{itemId}/add")
+    public ResponseEntity<List<MenuItem>> addMenuItemToCart(
+            @PathVariable MenuItemCategory category,
+            @PathVariable Long itemId,
+            @RequestBody(required = false) MenuItem menuItem) {
+
+        // Validate that the category exists and matches the item
+        if (menuItem == null) {
+            menuItem = kioskScreenService.getMenuItemById(itemId);
+            if (menuItem == null) {
+                return ResponseEntity.badRequest().body(null);
+            }
+        }
+
+        // Verify the item actually belongs to that category
+        if (menuItem.getItemCategorySelected() != category) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
         List<MenuItem> updatedCart = kioskScreenService.addMenuItemtoCart(menuItem);
         return ResponseEntity.ok(updatedCart);
     }
+
 
     @PutMapping("/cart/view/update")
     public String updateMenuItem(@RequestParam Long id, @RequestParam char size, @RequestParam int quantity) {

@@ -77,15 +77,6 @@ public class KioskScreenService implements KioskService{
         return List.of(MenuItemCategory.values());
     }
 
-
-    @Override
-    public List <MenuItem> getAllMenuItemsPerCategory(MenuItemCategory category) {
-        if(!isOrderStarted() || orderType == null){
-            throw new IllegalStateException("Please start an order to view the menu.");
-        }
-        return menuItemRepository.findByItemCategorySelected(category);
-    }
-
     //Kiosk Functionalities.
     @Override
     public List<MenuItem> getAllMenuItemsPerCategory(MenuItemCategory category, String sortOrder) {
@@ -109,9 +100,16 @@ public class KioskScreenService implements KioskService{
         return items;
     }
 
+    public MenuItem getMenuItemById(Long itemId) {
+        return menuItemRepository.findById(itemId.intValue())
+                .orElseThrow(() -> new IllegalArgumentException("Menu item not found with ID: " + itemId));
+    }
 
     @Override
     public List<MenuItem> addMenuItemtoCart(MenuItem menuItem) {
+        if (!isOrderStarted() || orderType == null) {
+            throw new IllegalStateException("Please start an order and select order type before adding items.");
+        }
         cartItems.add(menuItem);
         return cartItems;
     }
