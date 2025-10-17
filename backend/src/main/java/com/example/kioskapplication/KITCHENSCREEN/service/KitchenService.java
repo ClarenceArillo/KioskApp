@@ -4,7 +4,9 @@ import com.example.kioskapplication.KIOSKSCREEN.model.CustomerOrder;
 import com.example.kioskapplication.KIOSKSCREEN.model.OrderStatus;
 import com.example.kioskapplication.KIOSKSCREEN.repository.CustomerOrdersRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -13,6 +15,7 @@ import java.util.NoSuchElementException;
 public class KitchenService {
 
     private final CustomerOrdersRepository customerOrdersRepository;
+    private final List<SseEmitter> emitters = new ArrayList<>();
 
     KitchenService(CustomerOrdersRepository customerOrdersRepository) {
         this.customerOrdersRepository = customerOrdersRepository;
@@ -47,6 +50,29 @@ public class KitchenService {
         customerOrder.setOrderStatus(newStatus);
         return customerOrdersRepository.save(customerOrder);
 
+    }
+
+    public SseEmitter streamOrders() {
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        emitters.add(emitter);
+
+        emitter.onCompletion(() -> emitters.remove(emitter));
+        emitter.onTimeout(() -> emitters.remove(emitter));
+        return emitter;
+    }
+
+    public void notifyKitchen(CustomerOrder newOrder) {
+        List <SseEmitter> deadEmitters = new ArrayList<>();
+        for (SseEmitter emitter : emitters) {
+            try{
+                emitter.send(SseEmitter.event()
+                        .name("new-order")
+                        .data(newOrder));
+            }catch (Exception e){
+                deadEmitters.add(emitter);
+            }
+        }
+        emitters.removeAll(deadEmitters);
     }
 
 }

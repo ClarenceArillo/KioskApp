@@ -30,7 +30,7 @@ public class KioskScreenService implements KioskService{
     private boolean isPaid = false;
 
     @Autowired
-    private KitchenController kitchenController;
+    private KitchenService kitchenService;
 
     private final MenuItemRepository menuItemRepository;
     private final CustomerOrdersRepository customerOrdersRepository;
@@ -123,14 +123,14 @@ public class KioskScreenService implements KioskService{
 
     @Override
     public String updateMenuItemInCart(Long id, char size, int quantity) {
-        for (MenuItem item : cartItems) {
-            if (item.getItemId() == id) {
-                item.setItemSize(size);
-                item.setItemQuantity(quantity);
-                ;
-            }
-        }
-        return "Item updated successfully (Size: " + size + ", Quantity: " + quantity + ")";
+        MenuItem item = cartItems.stream()
+                .filter(i -> i.getItemId()== id.longValue())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Item not found in cart"));
+        if (quantity <= 0) throw new IllegalArgumentException("Quantity must be greater than zero");
+        item.setItemSize(size);
+        item.setItemQuantity(quantity);
+        return "Updated: " + item.getItemName();
     }
 
     @Override
@@ -142,6 +142,8 @@ public class KioskScreenService implements KioskService{
     public void checkout() {
         if(cartItems.isEmpty()){
             throw new IllegalStateException("Cart is empty. Please add items to cart before checkout.");
+        }else if (cartItems.isEmpty()) {
+            throw new IllegalStateException("Cart is empty");
         }else{
             this.isCheckout = true;
         }
@@ -171,12 +173,10 @@ public class KioskScreenService implements KioskService{
             this.orderStatus = OrderStatus.PENDING;
             this.isPaid = true;
             CustomerOrder savedOrder = saveOrderToDatabase();
-            kitchenController.notifyKitchen(savedOrder);
+            kitchenService.notifyKitchen(savedOrder);
             return savedOrder.getOrderId();
         }
     }
-
-
 
     private CustomerOrder saveOrderToDatabase() {
         double totalPrice = cartItems.stream()
