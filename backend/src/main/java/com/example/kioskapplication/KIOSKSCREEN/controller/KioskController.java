@@ -1,6 +1,7 @@
 package com.example.kioskapplication.KIOSKSCREEN.controller;
 
 import com.example.kioskapplication.KIOSKSCREEN.model.*;
+import com.example.kioskapplication.KIOSKSCREEN.repository.MenuItemRepository;
 import com.example.kioskapplication.KIOSKSCREEN.service.KioskScreenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ public class KioskController {
 
     @Autowired
     private KioskScreenService kioskScreenService;
+    private MenuItemRepository menuItemRepository;
 
     @PostMapping("/start")
     public String startOrder() {
@@ -49,28 +51,23 @@ public class KioskController {
     }
 
     @PostMapping("/{category}/{itemId}/add")
-    public ResponseEntity<List<MenuItem>> addMenuItemToCart(
+    public ResponseEntity<?> addMenuItemToCart(
             @PathVariable MenuItemCategory category,
-            @PathVariable Long itemId,
-            @RequestBody(required = false) MenuItem menuItem) {
+            @PathVariable Integer itemId
+    ) {
+        try {
+            // ✅ Fetch menu item from DB based on category + id
+            MenuItem menuItem = menuItemRepository
+                    .findByItemIdAndItemCategorySelected(itemId, category)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Menu item not found for category " + category + " and ID " + itemId));
 
-        // Validate that the category exists and matches the item
-        if (menuItem == null) {
-            menuItem = kioskScreenService.getMenuItemById(itemId);
-            if (menuItem == null) {
-                return ResponseEntity.badRequest().body(null);
-            }
+            List<MenuItem> updatedCart = kioskScreenService.addMenuItemtoCart(menuItem);
+            return ResponseEntity.ok(updatedCart);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Error adding item: " + e.getMessage());
         }
-
-        // Verify the item actually belongs to that category
-        if (menuItem.getItemCategorySelected() != category) {
-            return ResponseEntity.badRequest().body(null);
-        }
-
-        List<MenuItem> updatedCart = kioskScreenService.addMenuItemtoCart(menuItem);
-        return ResponseEntity.ok(updatedCart);
     }
-
 
     @PutMapping("/cart/view/update")
     public String updateMenuItem(@RequestParam Long id, @RequestParam char size, @RequestParam int quantity) {
