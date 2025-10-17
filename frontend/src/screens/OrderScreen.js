@@ -59,6 +59,7 @@ export default function OrderScreen(props) {
     setIsOpen(true);
   };
 
+  // OrderScreen.js — inside component
   const addToOrderhandler = async () => {
     try {
       const category = (product.itemCategorySelected || "WHATS_NEW").toUpperCase();
@@ -66,24 +67,19 @@ export default function OrderScreen(props) {
 
       console.log(`🛒 Adding item ${itemId} from category ${category}...`);
 
-      // 1️⃣ Send backend request (but don’t depend on its response)
-      const res = await fetch(`http://localhost:7000/order/${category}/${itemId}/add`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+      // Build payload exactly as actions.addToOrder expects
+      const payload = {
+        itemId: itemId,
+        itemName: product.name || product.itemName,
+        itemPrice: product.price || product.itemPrice,
+        itemQuantity: quantity || 1,
+        itemSize: product.itemSize || product.size || "M",
+        itemCategorySelected: category,
+        itemImageUrl: product.image || product.itemImageUrl || "",
+      };
 
-      if (!res.ok) {
-        const text = await res.text();
-        console.warn("⚠️ Backend did not return OK:", text);
-        // continue to add item locally so app doesn’t break
-      }
-
-      // 2️⃣ Add to frontend order state (same as before)
-      addToOrder(dispatch, {
-        ...product,
-        quantity: quantity || 1,
-        price: Number(product.price) || 0,
-      });
+      // Call the centralized action which will POST to backend once and update store
+      await addToOrder(dispatch, payload);
 
       console.log(`✅ Added to order: ${product.name}`);
       setIsOpen(false);

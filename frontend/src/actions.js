@@ -152,7 +152,7 @@ export const addToOrder = async (dispatch, product) => {
     try {
       // Normalize data into backend MenuItem structure
       const payload = {
-        itemId: product.id || product.itemId,
+        itemId: Number(product.id || product.itemId),
         itemName: product.name || product.itemName,
         itemPrice: product.price || product.itemPrice,
         itemQuantity: product.quantity || product.itemQuantity || 1,

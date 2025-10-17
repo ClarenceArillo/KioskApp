@@ -4,8 +4,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import Logo from "../components/Logo";
 import { useStyles } from "../styles";
 import axios from "axios";
-import { Store } from "../Store";           // adjust path if your Store is elsewhere
-import { ORDER_CLEAR } from "../constants"; // adjust path if your constants file is elsewhere
+import { Store } from "../Store";
+import { ORDER_CLEAR } from "../constants";
 
 export default function OrderCompleteScreen() {
   const { orderId } = useParams();
@@ -16,9 +16,9 @@ export default function OrderCompleteScreen() {
   const [receipt, setReceipt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [processing, setProcessing] = useState(false); // disable button while restarting
+  const [processing, setProcessing] = useState(false);
 
-  // Fetch receipt data (defensive: pref param -> localStorage)
+  // Fetch receipt data
   useEffect(() => {
     const fetchReceipt = async () => {
       try {
@@ -37,7 +37,7 @@ export default function OrderCompleteScreen() {
         const data = await res.json();
         setReceipt(data);
 
-        // safe to clear localStorage receipt id (only when it matches)
+        // Clear stored orderId if matched
         const stored = localStorage.getItem("orderId");
         if (stored && stored === String(id)) {
           localStorage.removeItem("orderId");
@@ -53,27 +53,19 @@ export default function OrderCompleteScreen() {
     fetchReceipt();
   }, [orderId]);
 
-  // Start a new order on backend AND clear frontend cart state
+  // Start a new order
   const handleOrderAgain = async () => {
     if (processing) return;
     setProcessing(true);
     try {
-      // 1) call backend to start new order session (which clears server cart)
       await axios.post("http://localhost:7000/order/start");
-
-      // 2) clear frontend cart state (so UI is empty immediately)
       dispatch({ type: ORDER_CLEAR });
-
-      // 3) clear any leftover orderId in localStorage (defensive)
       localStorage.removeItem("orderId");
-
       console.log("🆕 New order session started and frontend cart cleared");
     } catch (e) {
       console.error("Failed to start new order:", e);
-      // optional: show nicer UI error here
     } finally {
       setProcessing(false);
-      // navigate to home so user can start ordering fresh
       navigate("/");
     }
   };
@@ -129,7 +121,8 @@ export default function OrderCompleteScreen() {
           <Typography variant="h6">Order ID: {receipt?.orderId}</Typography>
           <Typography variant="body1">Type: {receipt?.orderType}</Typography>
           <Typography variant="body1" gutterBottom>
-            Date: {receipt?.orderDateTime ? new Date(receipt.orderDateTime).toLocaleString() : ""}
+            {/* ✅ FIX: Use dateTime instead of orderDateTime */}
+            Date: {receipt?.dateTime ? new Date(receipt.dateTime).toLocaleString() : "N/A"}
           </Typography>
 
           <hr />
@@ -140,11 +133,16 @@ export default function OrderCompleteScreen() {
 
           {receipt?.receiptItems && receipt.receiptItems.length > 0 ? (
             receipt.receiptItems.map((item, i) => (
-              <Box key={i} sx={{ display: "flex", justifyContent: "space-between", mb: "8px" }}>
+              <Box
+                key={i}
+                sx={{ display: "flex", justifyContent: "space-between", mb: "8px" }}
+              >
                 <Typography variant="body2">
                   {item.quantity}x {item.itemName} ({item.itemSize})
                 </Typography>
-                <Typography variant="body2">₱{item.subtotal?.toFixed(2) || "0.00"}</Typography>
+                <Typography variant="body2">
+                  ₱{item.subtotal?.toFixed(2) || "0.00"}
+                </Typography>
               </Box>
             ))
           ) : (
