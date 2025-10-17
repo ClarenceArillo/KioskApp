@@ -1,5 +1,6 @@
 package com.example.kioskapplication.KIOSKSCREEN.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -29,6 +30,8 @@ public class CustomerOrder {
     private boolean isPaid = false;
     private boolean isCheckout = false;
     private double totalPrice;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime orderDateTime;
 
     @OneToMany(mappedBy = "customerOrder", cascade = CascadeType.ALL, orphanRemoval = true)

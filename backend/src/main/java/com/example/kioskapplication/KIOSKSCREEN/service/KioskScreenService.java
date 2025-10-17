@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -255,6 +256,38 @@ public class KioskScreenService implements KioskService{
         );
 
     }
+
+    // new signature
+    public List<MenuItem> addMenuItemToCartByCategoryAndId(MenuItemCategory category, Integer itemId, int quantity, char size) {
+        if (!isOrderStarted() || orderType == null) {
+            throw new IllegalStateException("Please start an order and select order type before adding items.");
+        }
+
+        MenuItem repoItem = menuItemRepository
+                .findByItemIdAndItemCategorySelected(itemId, category)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Menu item not found for category " + category + " and ID " + itemId));
+
+        // Create a new MenuItem instance for the cart (do NOT modify the repository entity)
+        MenuItem cartItem = new MenuItem();
+        // copy the fields you need (id, name, price, desc, image, category, etc.)
+        cartItem.setItemId(repoItem.getItemId());
+        cartItem.setItemName(repoItem.getItemName());
+        cartItem.setItemPrice(repoItem.getItemPrice());
+        cartItem.setItemDescription(repoItem.getItemDescription());
+        cartItem.setItemImageUrl(repoItem.getItemImageUrl());
+        cartItem.setItemCategorySelected(repoItem.getItemCategorySelected());
+        // set chosen size & quantity:
+        cartItem.setItemSize(size);
+        cartItem.setItemQuantity(quantity);
+
+        // add to internal cart
+        cartItems.add(cartItem);
+
+        return cartItems;
+    }
+
+
 
     // Add this method to clear cart after receipt is generated
     @Transactional

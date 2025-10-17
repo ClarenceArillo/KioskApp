@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -57,11 +55,22 @@ public class KioskController {
     @PostMapping("/{category}/{itemId}/add")
     public ResponseEntity<List<MenuItem>> addMenuItemToCart(
             @PathVariable MenuItemCategory category,
-            @PathVariable Integer itemId) {
-        List<MenuItem> updatedCart = kioskScreenService.addMenuItemToCartByCategoryAndId(category, itemId);
+            @PathVariable Integer itemId,
+            @RequestBody(required = false) AddToCartRequest body) {
+
+        // default if body null
+        int quantity = 1;
+        char size = 'M';
+        if (body != null) {
+            quantity = (body.getItemQuantity() != null) ? body.getItemQuantity() : 1;
+            String s = body.getItemSize();
+            if (s != null && s.length() > 0) size = s.charAt(0);
+        }
+
+        // delegate to service with quantity & size
+        List<MenuItem> updatedCart = kioskScreenService.addMenuItemToCartByCategoryAndId(category, itemId, quantity, size);
         return ResponseEntity.ok(updatedCart);
     }
-
 
     @PutMapping("/cart/view/update")
     public String updateMenuItem(@RequestParam Long id, @RequestParam char size, @RequestParam int quantity) {
