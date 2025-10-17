@@ -51,23 +51,13 @@ public class KioskController {
     }
 
     @PostMapping("/{category}/{itemId}/add")
-    public ResponseEntity<?> addMenuItemToCart(
+    public ResponseEntity<List<MenuItem>> addMenuItemToCart(
             @PathVariable MenuItemCategory category,
-            @PathVariable Integer itemId
-    ) {
-        try {
-            // ✅ Fetch menu item from DB based on category + id
-            MenuItem menuItem = menuItemRepository
-                    .findByItemIdAndItemCategorySelected(itemId, category)
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "Menu item not found for category " + category + " and ID " + itemId));
-
-            List<MenuItem> updatedCart = kioskScreenService.addMenuItemtoCart(menuItem);
-            return ResponseEntity.ok(updatedCart);
-        } catch (Exception e) {
-            return ResponseEntity.status(400).body("Error adding item: " + e.getMessage());
-        }
+            @PathVariable Integer itemId) {
+        List<MenuItem> updatedCart = kioskScreenService.addMenuItemToCartByCategoryAndId(category, itemId);
+        return ResponseEntity.ok(updatedCart);
     }
+
 
     @PutMapping("/cart/view/update")
     public String updateMenuItem(@RequestParam Long id, @RequestParam char size, @RequestParam int quantity) {

@@ -100,6 +100,23 @@ public class KioskScreenService implements KioskService{
         return items;
     }
 
+    public List<MenuItem> addMenuItemToCartByCategoryAndId(MenuItemCategory category, Integer itemId) {
+        if (!isOrderStarted() || orderType == null) {
+            throw new IllegalStateException("Please start an order and select order type before adding items.");
+        }
+
+        // ✅ Fetch the item safely from repository
+        MenuItem menuItem = menuItemRepository
+                .findByItemIdAndItemCategorySelected(itemId, category)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Menu item not found for category " + category + " and ID " + itemId));
+
+        // ✅ Add it to the cart
+        cartItems.add(menuItem);
+        return cartItems;
+    }
+
+
     public MenuItem getMenuItemById(Long itemId) {
         return menuItemRepository.findById(itemId.intValue())
                 .orElseThrow(() -> new IllegalArgumentException("Menu item not found with ID: " + itemId));
