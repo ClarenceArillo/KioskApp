@@ -1,18 +1,16 @@
 package com.example.kioskapplication.KIOSKSCREEN.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
-@Data
+@Table(name = "order_item")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderItem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -20,17 +18,21 @@ public class OrderItem {
     private String itemName;
     private double itemPrice;
     private int quantity;
-    private char itemSize; // S, M, L
+    private char itemSize;
     private double subtotal;
+    private Long menuItemId;
 
-    private Long menuItemId; // Reference to MenuItem's itemId
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private CustomerOrder customerOrder;
 
     public OrderItem(MenuItem menuItem, int quantity, char itemSize) {
         this.itemName = menuItem.getItemName();
         this.itemPrice = menuItem.getItemPrice();
         this.quantity = quantity;
         this.itemSize = itemSize;
-        this.subtotal = menuItem.getItemPrice() * quantity;
+        this.subtotal = this.itemPrice * this.quantity;
         this.menuItemId = menuItem.getItemId();
     }
+
 }

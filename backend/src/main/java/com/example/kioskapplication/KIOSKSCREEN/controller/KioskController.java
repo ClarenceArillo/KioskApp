@@ -1,13 +1,18 @@
 package com.example.kioskapplication.KIOSKSCREEN.controller;
 
 import com.example.kioskapplication.KIOSKSCREEN.model.*;
+import com.example.kioskapplication.KIOSKSCREEN.repository.MenuItemRepository;
 import com.example.kioskapplication.KIOSKSCREEN.service.KioskScreenService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/order")
@@ -15,6 +20,7 @@ public class KioskController {
 
     @Autowired
     private KioskScreenService kioskScreenService;
+    private MenuItemRepository menuItemRepository;
 
     @PostMapping("/start")
     public String startOrder() {
@@ -48,11 +54,14 @@ public class KioskController {
         }
     }
 
-
     @PostMapping("/{category}/{itemId}/add")
-    public List<MenuItem> addMenuItem(@PathVariable MenuItemCategory category,@PathVariable Long itemId,  @RequestBody MenuItem menuItem) {
-        return kioskScreenService.addMenuItemtoCart(menuItem);
+    public ResponseEntity<List<MenuItem>> addMenuItemToCart(
+            @PathVariable MenuItemCategory category,
+            @PathVariable Integer itemId) {
+        List<MenuItem> updatedCart = kioskScreenService.addMenuItemToCartByCategoryAndId(category, itemId);
+        return ResponseEntity.ok(updatedCart);
     }
+
 
     @PutMapping("/cart/view/update")
     public String updateMenuItem(@RequestParam Long id, @RequestParam char size, @RequestParam int quantity) {
@@ -78,9 +87,9 @@ public class KioskController {
     }
 
     @PostMapping("/cart/view/cancel")
-    public String cancelOrder() {
+    public ResponseEntity<String> cancelOrder() {
         kioskScreenService.cancelOrder(OrderStatus.CANCELLED);
-        return "Order cancelled";
+        return ResponseEntity.ok("✅ Order cancelled successfully. Cart cleared and state reset.");
     }
 
     @PostMapping("/cart/view/pay")
@@ -93,16 +102,24 @@ public class KioskController {
         }
     }
 
-    @GetMapping("/receipt/{orderId}" )
+    @GetMapping("/receipt/{orderId}")
     public ResponseEntity<?> getReceipt(@PathVariable Integer orderId) {
-        try{
+        try {
             ReceiptDTO receipt = kioskScreenService.receiptPrintout(orderId);
-            kioskScreenService.completeOrder();
+            // do NOT clear state until after frontend receives it - do that asynchronously if needed
             return ResponseEntity.ok(receipt);
-        }catch (Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (NoSuchElementException | IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Server error: " + e.getMessage()));
         }
     }
+
+
+
+
 
 
 

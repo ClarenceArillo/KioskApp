@@ -60,33 +60,6 @@ public class KitchenController {
         return kitchenService.getOrderByStatus(OrderStatus.DONE);
     }
 
-    @GetMapping("/stream")
-    public SseEmitter streamOrders() {
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        emitters.add(emitter);
-
-        emitter.onCompletion(() -> emitters.remove(emitter));
-        emitter.onTimeout(() -> emitters.remove(emitter));
-        return emitter;
-    }
-
-    public void notifyKitchen(CustomerOrder newOrder) {
-        List <SseEmitter> deadEmitters = new ArrayList<>();
-        for (SseEmitter emitter : emitters) {
-            try{
-                emitter.send(SseEmitter.event()
-                        .name("new-order")
-                        .data(newOrder));
-            }catch (Exception e){
-                deadEmitters.add(emitter);
-            }
-        }
-        emitters.removeAll(deadEmitters);
-    }
-
-
-
-
 
 
 }
