@@ -19,16 +19,21 @@ const axiosInstance = axios.create({
 });
 
 // ✅ Start order
-export const startOrder = async () => {
+export const startOrder = (dispatch) => async () => {
   try {
     const response = await axiosInstance.post("/start");
     console.log("Order started:", response.data);
+
+    // Clear frontend cart state
+    dispatch({ type: ORDER_CLEAR });
+
     return response.data;
   } catch (error) {
     console.error("Failed to start order:", error.message);
     throw error;
   }
 };
+
 
 // ✅ Set order type
 export const setOrderType = (dispatch, orderType) => {
@@ -147,7 +152,7 @@ export const addToOrder = async (dispatch, product) => {
     try {
       // Normalize data into backend MenuItem structure
       const payload = {
-        itemId: product.id || product.itemId,
+        itemId: Number(product.id || product.itemId),
         itemName: product.name || product.itemName,
         itemPrice: product.price || product.itemPrice,
         itemQuantity: product.quantity || product.itemQuantity || 1,
