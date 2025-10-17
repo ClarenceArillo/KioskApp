@@ -98,16 +98,30 @@ public class KioskController {
         }
     }
 
-    @GetMapping("/receipt/{orderId}" )
+    @GetMapping("/receipt/{orderId}")
     public ResponseEntity<?> getReceipt(@PathVariable Integer orderId) {
-        try{
+        try {
+            // ✅ Generate receipt first (this reads from DB, not in-memory cart)
             ReceiptDTO receipt = kioskScreenService.receiptPrintout(orderId);
-            kioskScreenService.completeOrder();
-            return ResponseEntity.ok(receipt);
-        }catch (Exception e){
+
+            // ✅ Return the receipt first so frontend gets it immediately
+            ResponseEntity<?> response = ResponseEntity.ok(receipt);
+
+            // ✅ Now safely reset state after sending response
+            new Thread(() -> {
+                try {
+                    Thread.sleep(1000); // small delay to ensure frontend has data
+                    kioskScreenService.completeOrder();
+                    System.out.println("🧹 Kiosk state cleared after receipt printing");
+                } catch (InterruptedException ignored) {}
+            }).start();
+
+            return response;
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
 
 
 
