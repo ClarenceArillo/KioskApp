@@ -43,6 +43,7 @@ public class KioskScreenService implements KioskService{
 
     @Override
     public void startOrder() {
+        this.cartItems.clear();
         this.orderStarted = true;
         this.orderType = null;
         this.isCheckout = false;
@@ -266,7 +267,5 @@ public class KioskScreenService implements KioskService{
         this.isPaid = false;
         this.orderStatus = null;
     }
-
-
 
 }
