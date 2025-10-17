@@ -85,32 +85,77 @@ function reducer(state, action) {
         order: { ...state.order, paymentType: action.payload },
       };
 
-    case ORDER_ADD_ITEM: {
-      const item = action.payload;
-      const existItem = state.order.orderItems.find(
-        (x) => x.name === item.name
+    case "ORDER_ADD_ITEM": {
+      const data = action.payload;
+
+      // ✅ if backend sends array of items
+      if (Array.isArray(data)) {
+        const normalizedItems = data.map((item) => ({
+          itemId: item.itemId,
+          itemName: item.itemName,
+          price: Number(item.itemPrice || item.price) || 0,
+          quantity: Number(item.itemQuantity || item.quantity) || 1,
+          size: item.itemSize || "R",
+          subtotal:
+            (Number(item.itemPrice || item.price) || 0) *
+            (Number(item.itemQuantity || item.quantity) || 1),
+          category: item.itemCategorySelected || item.category,
+          imageUrl: item.itemImageUrl || item.image || null,
+        }));
+
+        const itemsCount = normalizedItems.reduce(
+          (acc, item) => acc + item.quantity,
+          0
+        );
+        const totalPrice = normalizedItems.reduce(
+          (acc, item) => acc + item.subtotal,
+          0
+        );
+
+        return {
+          ...state,
+          order: {
+            ...state.order,
+            orderItems: normalizedItems,
+            itemsCount,
+            totalPrice,
+          },
+        };
+      }
+
+      // ✅ if payload is a single object (most current backend setups)
+      const newItem = {
+        itemId: data.itemId,
+        name: data.name || data.itemName,
+        price: Number(data.price || data.itemPrice) || 0,
+        quantity: Number(data.quantity || data.itemQuantity) || 1,
+        size: data.size || "R",
+        category: data.category || data.itemCategorySelected,
+        image: data.image || data.itemImageUrl || null,
+      };
+
+      const existing = state.order.orderItems.find(
+        (x) => x.itemId === newItem.itemId
       );
-      const orderItems = existItem
+
+      const updatedItems = existing
         ? state.order.orderItems.map((x) =>
-            x.name === existItem.name ? item : x
+            x.itemId === existing.itemId
+              ? { ...x, quantity: x.quantity + newItem.quantity }
+              : x
           )
-        : [...state.order.orderItems, item];
+        : [...state.order.orderItems, newItem];
 
-      const itemsCount = orderItems.reduce((a, c) => a + c.quantity, 0);
-      const itemsPrice = orderItems.reduce(
-        (a, c) => a + c.quantity * c.price,
-        0
-      );
-
-      const totalPrice = Math.round(itemsPrice * 100) / 100;
+      const itemsCount = updatedItems.reduce((a, c) => a + c.quantity, 0);
+      const totalPrice = updatedItems.reduce((a, c) => a + c.quantity * c.price, 0);
 
       return {
         ...state,
         order: {
           ...state.order,
-          orderItems,
-          totalPrice,
+          orderItems: updatedItems,
           itemsCount,
+          totalPrice,
         },
       };
     }

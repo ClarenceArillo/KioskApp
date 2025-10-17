@@ -1,55 +1,178 @@
-import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material';
-import React, { useContext, useEffect } from 'react';
-import Logo from '../components/Logo';
-import { useStyles } from '../styles';
-import { Store } from '../Store';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { Box, Button, Typography, CircularProgress } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
+import Logo from "../components/Logo";
+import { useStyles } from "../styles";
 
 export default function OrderCompleteScreen() {
-  const styles = useStyles();
+  const { orderId } = useParams();
   const navigate = useNavigate();
-  const { state } = useContext(Store);
-  const { order } = state;
+  const styles = useStyles();
 
-  // Removed createOrder() call so it won’t depend on backend
+  const [receipt, setReceipt] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // ✅ Fetch receipt data
   useEffect(() => {
-    // intentionally left empty
-  }, []);
+  const fetchReceipt = async () => {
+    try {
+      // Prefer URL param; fallback to localStorage (defensive)
+      let id = orderId;
+      if (!id) {
+        id = localStorage.getItem("orderId");
+      }
 
-  return (
-    <Box className={styles.root}>
-      <Box className={`${styles.main} ${styles.red} ${styles.center}`}>
-        <Box>
-          <Logo large />
-          <>
-            <Typography
-              gutterBottom
-              className={styles.title}
-              variant="h3"
-              component="h3"
-            >
-              Your order has been placed
-            </Typography>
-            <Typography
-              gutterBottom
-              className={styles.title}
-              variant="h1"
-              component="h1"
-            >
-              Thank you!
-            </Typography>
-          </>
+      if (!id) {
+        throw new Error("No order ID available to fetch the receipt.");
+      }
+
+      const res = await fetch(`http://localhost:7000/order/receipt/${id}`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to load receipt");
+      }
+      const data = await res.json();
+      setReceipt(data);
+
+      // successful fetch — now it's safe to clear localStorage
+      // but only remove if it matches this id (safe guard)
+      const stored = localStorage.getItem("orderId");
+      if (stored && stored === String(id)) {
+        localStorage.removeItem("orderId");
+      }
+    } catch (err) {
+      console.error("❌ Failed to fetch receipt:", err);
+      setError("Could not load receipt. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchReceipt();
+}, [orderId]);
+
+
+  // ✅ Start fresh order session
+  const handleOrderAgain = async () => {
+    try {
+      await fetch("http://localhost:7000/order/start", { method: "POST" });
+      console.log("🆕 New order session started");
+    } catch (e) {
+      console.error("Failed to start new order:", e);
+    }
+    navigate("/");
+  };
+
+  if (loading) {
+    return (
+      <Box className={`${styles.root} ${styles.navy}`}>
+        <Box className={`${styles.main} ${styles.center}`}>
+          <CircularProgress color="inherit" />
         </Box>
       </Box>
+    );
+  }
 
-      <Box className={`${styles.center} ${styles.space}`}>
+  if (error) {
+    return (
+      <Box className={`${styles.root} ${styles.navy}`}>
+        <Box className={`${styles.main} ${styles.center}`}>
+          <Typography variant="h5" color="error">
+            {error}
+          </Typography>
+          <Button
+            variant="contained"
+            sx={{ mt: 3 }}
+            onClick={() => navigate("/")}
+          >
+            Back to Home
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
+
+  return (
+    <Box className={`${styles.root} ${styles.navy}`}>
+      <Box className={`${styles.main} ${styles.center}`}>
+        <Logo large />
+        <Typography variant="h3" gutterBottom>
+          ✅ Order Complete!
+        </Typography>
+
+        <Box
+          sx={{
+            backgroundColor: "#fff",
+            borderRadius: "16px",
+            padding: "24px",
+            marginTop: "24px",
+            width: "90%",
+            maxWidth: "500px",
+            maxHeight: "400px",
+            overflowY: "auto",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+            textAlign: "left",
+            color: "#000000dd",
+          }}
+        >
+          <Typography variant="h6">Order ID: {receipt.orderId}</Typography>
+          <Typography variant="body1">Type: {receipt.orderType}</Typography>
+          <Typography variant="body1" gutterBottom>
+            Date: {new Date(receipt.orderDateTime).toLocaleString()}
+          </Typography>
+
+          <hr />
+
+          <Typography variant="h6" gutterBottom>
+            Items:
+          </Typography>
+
+          {receipt.receiptItems && receipt.receiptItems.length > 0 ? (
+            receipt.receiptItems.map((item, i) => (
+              <Box
+                key={i}
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: "8px",
+                }}
+              >
+                <Typography variant="body2">
+                  {item.quantity}x {item.itemName} ({item.itemSize})
+                </Typography>
+                <Typography variant="body2">
+                  ₱{item.subtotal?.toFixed(2) || "0.00"}
+                </Typography>
+              </Box>
+            ))
+          ) : (
+            <Typography variant="body2" color="textSecondary">
+              No items found in this receipt.
+            </Typography>
+          )}
+
+          <hr />
+
+          <Typography variant="h6" align="right">
+            Total: ₱{receipt.totalPrice?.toFixed(2) || "0.00"}
+          </Typography>
+        </Box>
+
+        <Typography
+          variant="h6"
+          sx={{ marginTop: "20px", color: "#fff" }}
+        >
+          Pick up your order at the counter
+        </Typography>
+
         <Button
-          onClick={() => navigate('/')}
           variant="contained"
           color="primary"
           className={styles.largeButton}
+          sx={{ marginTop: "30px" }}
+          onClick={handleOrderAgain}
         >
-          Order Again
+          🆕 Order Again
         </Button>
       </Box>
     </Box>

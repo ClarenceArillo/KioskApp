@@ -44,7 +44,7 @@ function App() {
             <Route path="/review" element={<ReviewScreen />} />
             <Route path="/payment" element={<PaymentScreen />} />
             <Route path="/receipt" element={<ReceiptScreen />} /> 
-            <Route path="/completeorder" element={<OrderCompleteScreen />} />
+            <Route path="/completeorder/:orderId" element={<OrderCompleteScreen />} />
           </Routes>
         </div>
       </BrowserRouter>

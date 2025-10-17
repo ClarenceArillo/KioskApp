@@ -126,7 +126,6 @@ export default function ReviewScreen() {
     }
   };
 
-
   return (
     <Box className={styles.root}>
       <Box className={`${styles.main} ${styles.red} ${styles.center}`}>

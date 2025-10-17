@@ -145,30 +145,66 @@ export const listProducts = async (dispatch, categoryName = "WHATS_NEW") => {
 // ✅ Order actions
 export const addToOrder = async (dispatch, product) => {
     try {
-      console.log("🧾 Adding item to backend cart:", product);
-      const response = await fetch("http://localhost:7000/order/cart/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          itemId: product.id,
-          itemName: product.name,
-          itemPrice: product.price,
-          itemQuantity: product.quantity,
-          itemSize: product.size || "S",
-          itemCategorySelected: product.category || "DESSERT"
-        }),
+      // Normalize data into backend MenuItem structure
+      const payload = {
+        itemId: product.id || product.itemId,
+        itemName: product.name || product.itemName,
+        itemPrice: product.price || product.itemPrice,
+        itemQuantity: product.quantity || product.itemQuantity || 1,
+        itemSize: product.size || product.itemSize || "M",
+        itemCategorySelected:
+          product.category ||
+          product.itemCategorySelected ||
+          "WHATS_NEW",
+        itemImageUrl:
+          product.image ||
+          product.itemImageUrl ||
+          "",
+      };
+
+      // Build endpoint with dynamic category + itemId
+      const category = encodeURIComponent(payload.itemCategorySelected);
+      const itemId = payload.itemId;
+
+      const res = await fetch(
+        `http://localhost:7000/order/${category}/${itemId}/add`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to add item to backend cart");
+      }
+
+      const updatedCart = await res.json();
+
+      // Update frontend store only after backend confirms success
+      dispatch({
+        type: "ORDER_ADD_ITEM",
+        payload: {
+          id: payload.itemId,
+          itemId: payload.itemId,
+          name: payload.itemName,
+          price: payload.itemPrice,
+          quantity: payload.itemQuantity,
+          size: payload.itemSize,
+          image: payload.itemImageUrl,
+          category: payload.itemCategorySelected,
+        },
       });
 
-      if (!response.ok) throw new Error("Failed to sync with backend");
-
-      const data = await response.json();
-      console.log("✅ Item synced with backend:", product.itemName);
-      dispatch({ type: "ORDER_ADD_ITEM", payload: product });
+      console.log(`✅ Item added successfully: ${payload.itemName}`);
+      console.log("🛒 Updated cart:", updatedCart);
     } catch (error) {
-      console.error("❌ Failed to sync with backend:", error);
-      alert("Failed to add item to backend cart.");
+      console.error("❌ addToOrder failed:", error);
+      alert("Failed to add item to cart. Please try again.");
     }
   };
+
 
 
 export const removeFromOrder = (dispatch, item) => {

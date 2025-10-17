@@ -61,43 +61,37 @@ export default function OrderScreen(props) {
 
   const addToOrderhandler = async () => {
     try {
-      addToOrder(dispatch, { ...product, quantity });
+      const category = (product.itemCategorySelected || "WHATS_NEW").toUpperCase();
+      const itemId = product.itemId || product.id;
+
+      console.log(`🛒 Adding item ${itemId} from category ${category}...`);
+
+      // 1️⃣ Send backend request (but don’t depend on its response)
+      const res = await fetch(`http://localhost:7000/order/${category}/${itemId}/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.warn("⚠️ Backend did not return OK:", text);
+        // continue to add item locally so app doesn’t break
+      }
+
+      // 2️⃣ Add to frontend order state (same as before)
+      addToOrder(dispatch, {
+        ...product,
+        quantity: quantity || 1,
+        price: Number(product.price) || 0,
+      });
+
+      console.log(`✅ Added to order: ${product.name}`);
       setIsOpen(false);
-
-      console.log("🧾 Adding item to backend cart:", product);
-
-      if (!product.itemCategorySelected || !product.itemId) {
-        console.error("❌ Missing category or itemId:", product);
-        alert("Invalid item data. Please try again.");
-        return;
-      }
-
-      const response = await fetch(
-        `http://localhost:7000/order/${product.itemCategorySelected}/${product.itemId}/add`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...product,
-            itemQuantity: quantity,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Failed to sync with backend:", errorText);
-        alert("Failed to add item to backend cart.");
-      } else {
-        console.log("✅ Item synced with backend:", product.name);
-      }
-    } catch (error) {
-      console.error("❌ Add to cart error:", error);
-      alert("Something went wrong while adding to cart.");
+    } catch (err) {
+      console.error("❌ Failed to add item:", err);
+      alert("Could not add item. Please try again.");
     }
   };
-
-
 
   const cancelOrRemoveFromOrder = () => {
     removeFromOrder(dispatch, product);

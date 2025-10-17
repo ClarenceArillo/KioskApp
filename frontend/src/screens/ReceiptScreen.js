@@ -35,10 +35,10 @@ export default function ReceiptScreen() {
 
         // ✅ Ensure we always have a consistent structure
         setReceipt({
-          restaurantName: data.restaurantName || "KioskApp Restaurant",
-          restaurantAddress: data.restaurantAddress || "123 Sample Street, Manila",
-          contactNumber: data.contactNumber || "0912 345 6789",
-          email: data.email || "support@kioskapp.com",
+          restaurantName: data.restaurantName || "Aya sa Hapag - Makati",
+          restaurantAddress: data.restaurantAddress || "Makati Avenue, Poblacion, Makati City",
+          contactNumber: data.contactNumber || "(+63) 927-531-4820",
+          email: data.email || "ayasahapagmkt@gmail.com",
           orderId: data.orderId || 0,
           orderType: data.orderType || "N/A",
           orderDateTime: data.orderDateTime || new Date().toISOString(),
@@ -49,7 +49,20 @@ export default function ReceiptScreen() {
         setLoading(false);
       } catch (err) {
         console.error("❌ Error fetching receipt:", err);
-        setError(err.response?.data || "Failed to fetch receipt");
+
+        // Normalize error into a string we can render safely
+        let message = "Failed to fetch receipt";
+        if (err.response && err.response.data) {
+          // If Spring sent an error body (object), pick message or stringify
+          const data = err.response.data;
+          if (typeof data === "string") message = data;
+          else if (data.message) message = data.message;
+          else message = JSON.stringify(data);
+        } else if (err.message) {
+          message = err.message;
+        }
+
+        setError(message);
         setLoading(false);
       }
     };
@@ -58,8 +71,14 @@ export default function ReceiptScreen() {
   }, []);
 
   const handleDone = () => {
-    localStorage.removeItem("orderId");
-    navigate("/completeorder");
+    const orderId = localStorage.getItem("orderId");
+  if (!orderId) {
+    // fallback - just go home if no orderId for some reason
+    navigate("/");
+    return;
+  }
+  // navigate to completeorder with the orderId in the URL
+  navigate(`/completeorder/${orderId}`);
   };
 
   if (loading) {
@@ -112,6 +131,7 @@ export default function ReceiptScreen() {
             overflowY: "auto",
             boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
             textAlign: "left",
+            color: "#000000dd",
           }}
         >
           <Typography variant="h5" align="center" gutterBottom>
@@ -179,7 +199,7 @@ export default function ReceiptScreen() {
 
         <Typography
           variant="h6"
-          sx={{ marginTop: "20px", color: "#fff" }}
+          sx={{ marginTop: "20px", color: "#ffffffff" }}
         >
           Pick up your order at the counter
         </Typography>
