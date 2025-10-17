@@ -1,66 +1,81 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Box, Button, Typography, CircularProgress } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import Logo from "../components/Logo";
 import { useStyles } from "../styles";
+import axios from "axios";
+import { Store } from "../Store";           // adjust path if your Store is elsewhere
+import { ORDER_CLEAR } from "../constants"; // adjust path if your constants file is elsewhere
 
 export default function OrderCompleteScreen() {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const styles = useStyles();
+  const { dispatch } = useContext(Store);
 
   const [receipt, setReceipt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [processing, setProcessing] = useState(false); // disable button while restarting
 
-  // ✅ Fetch receipt data
+  // Fetch receipt data (defensive: pref param -> localStorage)
   useEffect(() => {
-  const fetchReceipt = async () => {
-    try {
-      // Prefer URL param; fallback to localStorage (defensive)
-      let id = orderId;
-      if (!id) {
-        id = localStorage.getItem("orderId");
+    const fetchReceipt = async () => {
+      try {
+        let id = orderId;
+        if (!id) id = localStorage.getItem("orderId");
+
+        if (!id) {
+          throw new Error("No order ID available to fetch the receipt.");
+        }
+
+        const res = await fetch(`http://localhost:7000/order/receipt/${id}`);
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || "Failed to load receipt");
+        }
+        const data = await res.json();
+        setReceipt(data);
+
+        // safe to clear localStorage receipt id (only when it matches)
+        const stored = localStorage.getItem("orderId");
+        if (stored && stored === String(id)) {
+          localStorage.removeItem("orderId");
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch receipt:", err);
+        setError("Could not load receipt. Please try again.");
+      } finally {
+        setLoading(false);
       }
+    };
 
-      if (!id) {
-        throw new Error("No order ID available to fetch the receipt.");
-      }
+    fetchReceipt();
+  }, [orderId]);
 
-      const res = await fetch(`http://localhost:7000/order/receipt/${id}`);
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Failed to load receipt");
-      }
-      const data = await res.json();
-      setReceipt(data);
-
-      // successful fetch — now it's safe to clear localStorage
-      // but only remove if it matches this id (safe guard)
-      const stored = localStorage.getItem("orderId");
-      if (stored && stored === String(id)) {
-        localStorage.removeItem("orderId");
-      }
-    } catch (err) {
-      console.error("❌ Failed to fetch receipt:", err);
-      setError("Could not load receipt. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetchReceipt();
-}, [orderId]);
-
-
-  // ✅ Start fresh order session
+  // Start a new order on backend AND clear frontend cart state
   const handleOrderAgain = async () => {
+    if (processing) return;
+    setProcessing(true);
     try {
-      await fetch("http://localhost:7000/order/start", { method: "POST" });
-      console.log("🆕 New order session started");
+      // 1) call backend to start new order session (which clears server cart)
+      await axios.post("http://localhost:7000/order/start");
+
+      // 2) clear frontend cart state (so UI is empty immediately)
+      dispatch({ type: ORDER_CLEAR });
+
+      // 3) clear any leftover orderId in localStorage (defensive)
+      localStorage.removeItem("orderId");
+
+      console.log("🆕 New order session started and frontend cart cleared");
     } catch (e) {
       console.error("Failed to start new order:", e);
+      // optional: show nicer UI error here
+    } finally {
+      setProcessing(false);
+      // navigate to home so user can start ordering fresh
+      navigate("/");
     }
-    navigate("/");
   };
 
   if (loading) {
@@ -80,11 +95,7 @@ export default function OrderCompleteScreen() {
           <Typography variant="h5" color="error">
             {error}
           </Typography>
-          <Button
-            variant="contained"
-            sx={{ mt: 3 }}
-            onClick={() => navigate("/")}
-          >
+          <Button variant="contained" sx={{ mt: 3 }} onClick={() => navigate("/")}>
             Back to Home
           </Button>
         </Box>
@@ -115,10 +126,10 @@ export default function OrderCompleteScreen() {
             color: "#000000dd",
           }}
         >
-          <Typography variant="h6">Order ID: {receipt.orderId}</Typography>
-          <Typography variant="body1">Type: {receipt.orderType}</Typography>
+          <Typography variant="h6">Order ID: {receipt?.orderId}</Typography>
+          <Typography variant="body1">Type: {receipt?.orderType}</Typography>
           <Typography variant="body1" gutterBottom>
-            Date: {new Date(receipt.orderDateTime).toLocaleString()}
+            Date: {receipt?.orderDateTime ? new Date(receipt.orderDateTime).toLocaleString() : ""}
           </Typography>
 
           <hr />
@@ -127,22 +138,13 @@ export default function OrderCompleteScreen() {
             Items:
           </Typography>
 
-          {receipt.receiptItems && receipt.receiptItems.length > 0 ? (
+          {receipt?.receiptItems && receipt.receiptItems.length > 0 ? (
             receipt.receiptItems.map((item, i) => (
-              <Box
-                key={i}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: "8px",
-                }}
-              >
+              <Box key={i} sx={{ display: "flex", justifyContent: "space-between", mb: "8px" }}>
                 <Typography variant="body2">
                   {item.quantity}x {item.itemName} ({item.itemSize})
                 </Typography>
-                <Typography variant="body2">
-                  ₱{item.subtotal?.toFixed(2) || "0.00"}
-                </Typography>
+                <Typography variant="body2">₱{item.subtotal?.toFixed(2) || "0.00"}</Typography>
               </Box>
             ))
           ) : (
@@ -154,14 +156,11 @@ export default function OrderCompleteScreen() {
           <hr />
 
           <Typography variant="h6" align="right">
-            Total: ₱{receipt.totalPrice?.toFixed(2) || "0.00"}
+            Total: ₱{receipt?.totalPrice?.toFixed(2) || "0.00"}
           </Typography>
         </Box>
 
-        <Typography
-          variant="h6"
-          sx={{ marginTop: "20px", color: "#fff" }}
-        >
+        <Typography variant="h6" sx={{ marginTop: "20px", color: "#fff" }}>
           Pick up your order at the counter
         </Typography>
 
@@ -171,8 +170,9 @@ export default function OrderCompleteScreen() {
           className={styles.largeButton}
           sx={{ marginTop: "30px" }}
           onClick={handleOrderAgain}
+          disabled={processing}
         >
-          🆕 Order Again
+          {processing ? "Starting new order..." : "🆕 Order Again"}
         </Button>
       </Box>
     </Box>
