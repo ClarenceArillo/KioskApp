@@ -112,6 +112,12 @@ export default function OrderScreen() {
   const closeHandler = () => setIsOpen(false);
   const previewOrderHandler = () => navigate('/review');
 
+  // Format category name for display
+  const formatCategoryName = (name) => {
+    if (!name) return '';
+    return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
   return (
     <Box
       sx={{
@@ -371,6 +377,7 @@ export default function OrderScreen() {
           boxShadow: 'inset 0 0 15px rgba(0,0,0,0.03)',
         }}
       >
+        {/* ===== HEADER WITH SORT MENU ===== */}
         <Box
           sx={{
             display: 'flex',
@@ -387,49 +394,51 @@ export default function OrderScreen() {
               color: '#ff2040',
             }}
           >
-            {categoryName || "What's New"}
+            {categoryName ? formatCategoryName(categoryName) : "What's New"}
           </Typography>
 
-          {/* Sort Menu */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.5,
-              backgroundColor: '#fff',
-              border: '1.5px solid #f0f0f0',
-              borderRadius: '10px',
-              px: 2,
-              py: 0.6,
-              boxShadow: '0 3px 10px rgba(0,0,0,0.06)',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                borderColor: '#ff2040',
-                boxShadow: '0 4px 12px rgba(255,32,64,0.2)',
-              },
-            }}
-            onClick={handleSortClick}
-          >
-            <SortIcon sx={{ color: '#ff2040' }} />
-            <Typography variant="body1" sx={{ fontWeight: 600, color: '#444' }}>
-              Sort by:
-            </Typography>
-            <Typography
-              variant="body2"
+          {/* Sort Menu - Only show when category is selected */}
+          {categoryName && (
+            <Box
               sx={{
-                color: '#ff2040',
-                fontWeight: 600,
-                textTransform: 'capitalize',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                backgroundColor: '#fff',
+                border: '1.5px solid #f0f0f0',
+                borderRadius: '10px',
+                px: 2,
+                py: 0.6,
+                boxShadow: '0 3px 10px rgba(0,0,0,0.06)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  borderColor: '#ff2040',
+                  boxShadow: '0 4px 12px rgba(255,32,64,0.2)',
+                },
               }}
+              onClick={handleSortClick}
             >
-              {sortOrder === 'default'
-                ? 'Default'
-                : sortOrder === 'lowToHigh'
-                ? 'Lowest Price'
-                : 'Highest Price'}
-            </Typography>
-          </Box>
+              <SortIcon sx={{ color: '#ff2040' }} />
+              <Typography variant="body1" sx={{ fontWeight: 600, color: '#444' }}>
+                Sort by:
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#ff2040',
+                  fontWeight: 600,
+                  textTransform: 'capitalize',
+                }}
+              >
+                {sortOrder === 'default'
+                  ? 'Default'
+                  : sortOrder === 'lowToHigh'
+                  ? 'Lowest Price'
+                  : 'Highest Price'}
+              </Typography>
+            </Box>
+          )}
 
           <Menu
             anchorEl={anchorEl}
@@ -459,83 +468,105 @@ export default function OrderScreen() {
           </Menu>
         </Box>
 
-        {/* ===== PRODUCT GRID ===== */}
-        {loadingProducts ? (
-          <CircularProgress />
-        ) : errorProducts ? (
-          <Alert severity="error">{errorProducts}</Alert>
+        {/* ===== MAIN CONTENT AREA ===== */}
+        {categoryName === '' ? (
+          // ✅ Display Menu Poster when no category is selected
+          <Box
+            sx={{
+              width: '100%',
+              height: 'calc(100vh - 100px)',
+              backgroundImage: 'url("images/MenuImg.png")',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              borderRadius: '12px',
+              boxShadow: 'inset 0 0 40px rgba(0,0,0,0.3), 0 8px 25px rgba(0,0,0,0.15)',
+              border: '3px solid #ff2040',
+            }}
+          />
         ) : (
-          <Grid container spacing={3} justifyContent="center" alignItems="stretch">
-            {[...products]
-              .sort((a, b) => {
-                if (sortOrder === 'lowToHigh') return a.price - b.price;
-                if (sortOrder === 'highToLow') return b.price - a.price;
-                return 0;
-              })
-              .map((product) => (
-                <Grid item xs={12} sm={6} md={4} lg={2.4} key={product.name}>
-                  <Card
-                    sx={{
-                      height: 280, // fixed uniform height for smoothness
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      borderRadius: 4,
-                      boxShadow: '0 6px 18px rgba(0,0,0,0.12)',
-                      transition: '0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-6px)',
-                        boxShadow: '0 10px 25px rgba(255,32,64,0.35)',
-                      },
-                    }}
-                    onClick={() =>
-                      productClickHandler({
-                        ...product,
-                        itemCategorySelected: categoryName,
-                        itemId: product.id || product.itemId,
-                      })
-                    }
-                  >
-                    <CardActionArea sx={{ flexGrow: 1 }}>
-                      <CardMedia
-                        component="img"
-                        alt={product.name}
-                        image={product.image}
+          // ===== PRODUCT GRID WHEN CATEGORY IS SELECTED =====
+          <>
+            {loadingProducts ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : errorProducts ? (
+              <Alert severity="error">{errorProducts}</Alert>
+            ) : (
+              <Grid container spacing={3} justifyContent="center" alignItems="stretch">
+                {[...products]
+                  .sort((a, b) => {
+                    if (sortOrder === 'lowToHigh') return a.price - b.price;
+                    if (sortOrder === 'highToLow') return b.price - a.price;
+                    return 0;
+                  })
+                  .map((product) => (
+                    <Grid item xs={12} sm={6} md={4} lg={2.4} key={product.name}>
+                      <Card
                         sx={{
-                          height: 160,
-                          width: '100%',
-                          objectFit: 'contain',
-                          backgroundColor: '#fff',
-                          borderRadius: '20px 20px 0 0',
-                          p: 1.5,
-                          transition: 'transform 0.25s ease',
+                          height: 280,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          borderRadius: 4,
+                          boxShadow: '0 6px 18px rgba(0,0,0,0.12)',
+                          transition: '0.3s ease',
+                          '&:hover': {
+                            transform: 'translateY(-6px)',
+                            boxShadow: '0 10px 25px rgba(255,32,64,0.35)',
+                          },
                         }}
-                      />
+                        onClick={() =>
+                          productClickHandler({
+                            ...product,
+                            itemCategorySelected: categoryName,
+                            itemId: product.id || product.itemId,
+                          })
+                        }
+                      >
+                        <CardActionArea sx={{ flexGrow: 1 }}>
+                          <CardMedia
+                            component="img"
+                            alt={product.name}
+                            image={product.image}
+                            sx={{
+                              height: 160,
+                              width: '100%',
+                              objectFit: 'contain',
+                              backgroundColor: '#fff',
+                              borderRadius: '20px 20px 0 0',
+                              p: 1.5,
+                              transition: 'transform 0.25s ease',
+                            }}
+                          />
 
-                      <CardContent sx={{ textAlign: 'center', py: 1.5 }}>
-                        <Typography
-                          gutterBottom
-                          variant="body1"
-                          sx={{
-                            fontWeight: 600,
-                            color: '#333',
-                            fontSize: '0.95rem',
-                          }}
-                        >
-                          {product.name}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          sx={{ color: '#ff2040', fontWeight: 600 }}
-                        >
-                          ₱{product.price}
-                        </Typography>
-                      </CardContent>
-                    </CardActionArea>
-                  </Card>
-                </Grid>
-              ))}
-          </Grid>
+                          <CardContent sx={{ textAlign: 'center', py: 1.5 }}>
+                            <Typography
+                              gutterBottom
+                              variant="body1"
+                              sx={{
+                                fontWeight: 600,
+                                color: '#333',
+                                fontSize: '0.95rem',
+                              }}
+                            >
+                              {product.name}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{ color: '#ff2040', fontWeight: 600 }}
+                            >
+                              ₱{product.price}
+                            </Typography>
+                          </CardContent>
+                        </CardActionArea>
+                      </Card>
+                    </Grid>
+                  ))}
+              </Grid>
+            )}
+          </>
         )}
       </Box>
 
