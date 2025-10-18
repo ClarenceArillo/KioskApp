@@ -7,300 +7,415 @@ import {
   CardContent,
   Dialog,
   DialogTitle,
-  Grid,
+  DialogContent,
   TextField,
   Typography,
+  Backdrop,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { Store } from '../Store';
 import { addToOrder, removeFromOrder } from '../actions';
-import { useStyles } from '../styles';
 import Logo from '../components/Logo';
 import { useNavigate } from 'react-router-dom';
 
 export default function ReviewScreen() {
   const { state, dispatch } = useContext(Store);
   const navigate = useNavigate();
-  const styles = useStyles();
-
-  const { orderItems, itemsCount, totalPrice, orderType } = state.order;
+  const { orderItems, totalPrice, orderType } = state.order;
 
   const [quantity, setQuantity] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
   const [product, setProduct] = useState({});
 
   const closeHandler = () => setIsOpen(false);
-  
+
   const productClickHandler = (p) => {
     setProduct(p);
-    // ✅ FIX: Set quantity to the current item's quantity, not 1
     setQuantity(p.quantity || 1);
     setIsOpen(true);
   };
 
   const addToOrderHandler = async () => {
-    try {
-      // ✅ FIX: Remove the existing item first, then add with new quantity
-      removeFromOrder(dispatch, product);
-      
-      // Add to local state with updated quantity
-      addToOrder(dispatch, { ...product, quantity });
-      setIsOpen(false);
-
-      // ✅ FIX: Use PUT to update quantity in backend instead of POST
-      await fetch(`http://localhost:7000/order/cart/view/update?id=${product.itemId}&quantity=${quantity}&size=${product.size || 'M'}`, {
-        method: "PUT",
-      });
-      
-      console.log("✅ Updated item quantity in backend cart:", product.name, "to", quantity);
-    } catch (error) {
-      console.error("❌ Failed to update item quantity in backend:", error);
-    }
+    removeFromOrder(dispatch, product);
+    addToOrder(dispatch, { ...product, quantity });
+    setIsOpen(false);
+    await fetch(
+      `http://localhost:7000/order/cart/view/update?id=${product.itemId}&quantity=${quantity}&size=${product.size || 'M'}`,
+      { method: 'PUT' }
+    );
   };
 
   const cancelOrRemoveFromOrder = async () => {
-    try {
-      // Remove from frontend state
-      removeFromOrder(dispatch, product);
-      setIsOpen(false);
-
-      // Remove from backend cart
-      const response = await fetch("http://localhost:7000/order/cart/view/remove", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId: product.itemId }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Failed to remove item:", errorText);
-        alert("Failed to remove item from backend cart.");
-      } else {
-        console.log("✅ Item removed from backend cart:", product.name);
-      }
-    } catch (error) {
-      console.error("❌ Error removing item from backend:", error);
-      alert("Something went wrong while removing item.");
-    }
+    removeFromOrder(dispatch, product);
+    setIsOpen(false);
+    await fetch('http://localhost:7000/order/cart/view/remove', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemId: product.itemId }),
+    });
   };
 
-  
   const proceedToCheckoutHandler = async () => {
-    try {
-      const response = await fetch("http://localhost:7000/order/cart/view/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Checkout failed:", errorText);
-        alert("Checkout failed. Please add items first.");
-        return;
-      }
-
-      console.log("✅ Checkout successful!");
-      navigate("/payment");
-    } catch (error) {
-      console.error("❌ Checkout error:", error);
-      alert("Checkout failed. Please try again.");
-    }
+    const response = await fetch('http://localhost:7000/order/cart/view/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (response.ok) navigate('/payment');
+    else alert('Checkout failed. Please add items first.');
   };
 
   const cancelOrderHandler = async () => {
-    try {
-      const response = await fetch("http://localhost:7000/order/cart/view/cancel", {
-        method: "POST",
-      });
-
-      if (response.ok) {
-        alert("Order cancelled successfully!");
-        dispatch({ type: "ORDER_CLEAR" }); // clear frontend store
-        navigate("/"); // Go back to home
-      } else {
-        const errorText = await response.text();
-        console.error("❌ Cancel failed:", errorText);
-        alert("Failed to cancel order. Please try again.");
-      }
-    } catch (error) {
-      console.error("❌ Error cancelling order:", error);
-      alert("Something went wrong while cancelling order.");
-    }
+    const response = await fetch('http://localhost:7000/order/cart/view/cancel', {
+      method: 'POST',
+    });
+    if (response.ok) {
+      alert('Order cancelled!');
+      dispatch({ type: 'ORDER_CLEAR' });
+      navigate('/');
+    } else alert('Failed to cancel order.');
   };
 
   return (
-      <Box className={styles.root}>
-        <Box className={`${styles.main} ${styles.red} ${styles.center}`}>
-          {/* === Edit Quantity Dialog === */}
-          <Dialog maxWidth="sm" fullWidth open={isOpen} onClose={closeHandler}>
-            <DialogTitle className={styles.center}>Edit {product.name}</DialogTitle>
-            <Box className={`${styles.row} ${styles.center}`}>
-              <Button
-                variant="contained"
-                color="primary"
-                disabled={quantity === 1}
-                onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-              >
-                <RemoveIcon />
-              </Button>
-              <TextField
-                inputProps={{
-                  className: styles.largeInput,
-                  min: 1,
-                  readOnly: true, // Prevent manual input for consistency
-                }}
-                className={styles.largeNumber}
-                type="number"
-                variant="filled"
-                value={quantity}
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setQuantity(quantity + 1)}
-              >
-                <AddIcon />
-              </Button>
-            </Box>
-            <Box className={`${styles.row} ${styles.around}`}>
-              <Button
-                onClick={cancelOrRemoveFromOrder}
-                variant="contained"
-                color="error"
-                size="large"
-                className={styles.largeButton}
-              >
-                Remove From Order
-              </Button>
-              <Button
-                onClick={addToOrderHandler}
-                variant="contained"
-                color="primary"
-                size="large"
-                className={styles.largeButton}
-              >
-                Update Quantity
-              </Button>
-            </Box>
-          </Dialog>
-
-          {/* === Header Section === */}
-          <Box className={`${styles.center} ${styles.column}`}>
-            <Logo large />
-            <Typography gutterBottom className={styles.title} variant="h3">
-              Review my {orderType} order
-            </Typography>
-          </Box>
-
-          {/* === Order Item List === */}
-          <Grid container>
-            {orderItems.map((orderItem) => (
-              <Grid item md={12} key={orderItem.name}>
-                <Card
-                  className={styles.card}
-                  onClick={() => productClickHandler(orderItem)}
-                >
-                  <CardActionArea>
-                    <CardContent>
-                      <Box className={`${styles.row} ${styles.between}`}>
-                        <Typography variant="body2" color="textPrimary">
-                          {orderItem.name}
-                        </Typography>
-                        <Button variant="contained">Edit</Button>
-                      </Box>
-                      <Box className={`${styles.row} ${styles.between}`}>
-                        <Typography variant="body2" color="textPrimary">
-                          {orderItem.quantity} x ₱{orderItem.price}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-
-        {/* === Bottom Section (Total + Buttons) === */}
-        <Box
+    <Box
+      sx={{
+        height: '100vh',
+        backgroundColor: '#f9f9f9',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        overflow: 'auto',
+        pb: 8,
+      }}
+    >
+      {/* === EDIT ITEM MODAL === */}
+      <Dialog
+        maxWidth="sm"
+        fullWidth
+        open={isOpen}
+        onClose={closeHandler}
+        slots={{
+          backdrop: (props) => (
+            <Backdrop
+              {...props}
+              sx={{
+                backdropFilter: 'blur(6px)',
+                backgroundColor: 'rgba(255,255,255,0.3)',
+              }}
+            />
+          ),
+        }}
+        PaperProps={{
+          sx: {
+            width: '45%',
+            maxWidth: 340,
+            borderRadius: 4,
+            boxShadow: '0 0 35px rgba(255,255,255,0.6)',
+            border: '2px solid #f1f1f1',
+            backgroundColor: '#fff',
+            transition: 'all 0.3s ease',
+          },
+        }}
+      >
+        <DialogTitle
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "20px",
-            marginTop: "30px",
-            marginBottom: "40px",
+            textAlign: 'center',
+            fontWeight: 700,
+            fontSize: '1.3rem',
+            color: '#ff2040',
+            borderBottom: '1px solid #f0f0f0',
           }}
         >
-          {/* Total Summary */}
+          Edit {product.name}
+        </DialogTitle>
+
+        <DialogContent>
           <Box
             sx={{
-              textAlign: "center",
-              backgroundColor: "#fff",
-              padding: "15px 20px",
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-              width: "70%",
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: 2,
+              mt: 2,
             }}
           >
-            <Typography
-              variant="h5"
+            <Button
+              variant="contained"
+              disabled={quantity === 1}
+              onClick={() => quantity > 1 && setQuantity(quantity - 1)}
               sx={{
-                fontWeight: "bold",
-                color: "#000",
+                backgroundColor: '#ff2040',
+                '&:hover': { backgroundColor: '#e01b36' },
+                borderRadius: 2,
               }}
             >
-              {orderType} Order &nbsp;|&nbsp; Total: ₱
-              {totalPrice?.toFixed(2) || 0}
-            </Typography>
+              <RemoveIcon />
+            </Button>
+
+            <TextField
+              inputProps={{
+                style: {
+                  textAlign: 'center',
+                  fontSize: '1.4rem',
+                  fontWeight: 600,
+                  width: '60px',
+                },
+              }}
+              variant="outlined"
+              value={quantity}
+              onChange={(e) => setQuantity(Number(e.target.value))}
+            />
+
+            <Button
+              variant="contained"
+              onClick={() => setQuantity(quantity + 1)}
+              sx={{
+                backgroundColor: '#ff2040',
+                '&:hover': { backgroundColor: '#e01b36' },
+                borderRadius: 2,
+              }}
+            >
+              <AddIcon />
+            </Button>
           </Box>
 
-          {/* Action Buttons */}
-          <Box className={`${styles.row} ${styles.around}`} sx={{ width: "70%" }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              mt: 3,
+              gap: 2,
+            }}
+          >
             <Button
-              onClick={() => navigate("/order")}
-              variant="contained"
-              color="primary"
-              className={styles.largeButton}
-            >
-              Back
-            </Button>
-
-            <Button
-              onClick={proceedToCheckoutHandler}
-              variant="contained"
-              color="secondary"
-              disabled={orderItems.length === 0}
-              className={styles.largeButton}
-            >
-              Proceed To Checkout
-            </Button>
-
-            <Button
-              onClick={cancelOrderHandler}
+              onClick={cancelOrRemoveFromOrder}
               variant="contained"
               color="error"
-              className={styles.largeButton}
-              style={{
-                backgroundColor: "#b71c1c",
-                color: "white",
-                fontWeight: "bold",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-                transition: "0.3s",
+              sx={{
+                flex: 1,
+                fontWeight: 600,
+                borderRadius: 2,
+                textTransform: 'none',
               }}
-              onMouseEnter={(e) =>
-                (e.target.style.backgroundColor = "#d32f2f")
-              }
-              onMouseLeave={(e) =>
-                (e.target.style.backgroundColor = "#b71c1c")
-              }
             >
-              Cancel Order
+              Remove Item
+            </Button>
+
+            <Button
+              onClick={addToOrderHandler}
+              variant="contained"
+              sx={{
+                flex: 1,
+                fontWeight: 600,
+                borderRadius: 2,
+                backgroundColor: '#ff2040',
+                '&:hover': { backgroundColor: '#e01b36' },
+                textTransform: 'none',
+              }}
+            >
+              Update
             </Button>
           </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* === HEADER === */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          mt: 4,
+          mb: 2,
+        }}
+      >
+        <Box sx={{ transform: 'scale(1.2)', mb: 1 }}>
+          <Logo />
+        </Box>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 700,
+            color: '#ff2040',
+            textAlign: 'center',
+            mb: 1,
+          }}
+        >
+          Review My {orderType} Order
+        </Typography>
+      </Box>
+
+      {/* === ORDER ITEMS BOX === */}
+      <Box
+        sx={{
+          width: '45%',
+          background: 'linear-gradient(180deg, #ffffff 0%, #fef6f6 100%)',
+          borderRadius: 3,
+          boxShadow: '0 4px 18px rgba(0,0,0,0.12)',
+          border: '1.5px solid rgba(255,255,255,0.7)',
+          backdropFilter: 'blur(6px)',
+          p: 3,
+          mb: 4,
+        }}
+      >
+        {orderItems.map((orderItem) => (
+          <Card
+            key={orderItem.name}
+            sx={{
+              borderRadius: 2,
+              boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+              mb: 2,
+              transition: '0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 15px rgba(255,32,64,0.2)',
+              },
+            }}
+            onClick={() => productClickHandler(orderItem)}
+          >
+            <CardActionArea>
+              <CardContent>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 3,
+                    px: 0.5,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      color: '#333',
+                      flex: 1,
+                    }}
+                  >
+                    {orderItem.name}
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
+                      gap: 3,
+                      minWidth: '120px',
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: '#777',
+                        fontWeight: 500,
+                        fontSize: '0.95rem',
+                      }}
+                    >
+                      {orderItem.quantity}×
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: '#ff2040',
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                      }}
+                    >
+                      ₱{orderItem.price}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </CardActionArea>
+          </Card>
+        ))}
+      </Box>
+
+      {/* === FROSTED-GLASS SUMMARY BAR === */}
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(255, 255, 255, 0.75)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 -3px 15px rgba(0,0,0,0.15)',
+          borderRadius: '16px 16px 0 0',
+          borderTop: '3px solid #ff2040',
+          padding: 2,
+          width: '45%',
+          maxWidth: 700,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          zIndex: 999,
+        }}
+      >
+        <Box
+          sx={{
+            border: '1.5px solid #ff2040',
+            borderRadius: 3,
+            padding: 1,
+            fontWeight: 600,
+            width: '100%',
+            textAlign: 'center',
+            mb: 1.5,
+            backgroundColor: 'rgba(255,255,255,0.9)',
+            boxShadow: '0 3px 8px rgba(255,32,64,0.2)',
+          }}
+        >
+          My {orderType} Order | Total: ₱{totalPrice?.toFixed(2) || 0}
+        </Box>
+
+        <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+          <Button
+            onClick={() => navigate('/order')}
+            variant="contained"
+            sx={{
+              flex: 1,
+              borderRadius: 3,
+              fontWeight: 600,
+              backgroundColor: '#ddd',
+              color: '#000',
+              '&:hover': { backgroundColor: '#ccc' },
+              textTransform: 'none',
+            }}
+          >
+            Back
+          </Button>
+
+          <Button
+            onClick={proceedToCheckoutHandler}
+            variant="contained"
+            fullWidth
+            disabled={orderItems.length === 0}
+            sx={{
+              flex: 1,
+              borderRadius: 3,
+              fontWeight: 600,
+              backgroundColor: '#ff2040',
+              '&:hover': { backgroundColor: '#e01b36' },
+              textTransform: 'none',
+            }}
+          >
+            Proceed
+          </Button>
+
+          <Button
+            onClick={cancelOrderHandler}
+            variant="contained"
+            color="error"
+            sx={{
+              flex: 1,
+              borderRadius: 3,
+              fontWeight: 600,
+              textTransform: 'none',
+            }}
+          >
+            Cancel
+          </Button>
         </Box>
       </Box>
+    </Box>
   );
-
 }

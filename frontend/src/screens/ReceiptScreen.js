@@ -5,6 +5,7 @@ import {
   Button,
   CircularProgress,
   Alert,
+  Divider,
 } from "@mui/material";
 import { useStyles } from "../styles";
 import Logo from "../components/Logo";
@@ -28,32 +29,30 @@ export default function ReceiptScreen() {
           return;
         }
 
-        console.log("📦 Fetching receipt for orderId:", orderId);
         const { data } = await axios.get(
           `http://localhost:7000/order/receipt/${orderId}`
         );
 
-        // ✅ Ensure we always have a consistent structure
         setReceipt({
           restaurantName: data.restaurantName || "Aya sa Hapag - Makati",
-          restaurantAddress: data.restaurantAddress || "Makati Avenue, Poblacion, Makati City",
+          restaurantAddress:
+            data.restaurantAddress ||
+            "Makati Avenue, Poblacion, Makati City",
           contactNumber: data.contactNumber || "(+63) 927-531-4820",
           email: data.email || "ayasahapagmkt@gmail.com",
           orderId: data.orderId || 0,
           orderType: data.orderType || "N/A",
           orderDateTime: data.orderDateTime || new Date().toISOString(),
           totalPrice: data.totalPrice || 0,
-          receiptItems: Array.isArray(data.receiptItems) ? data.receiptItems : [],
+          receiptItems: Array.isArray(data.receiptItems)
+            ? data.receiptItems
+            : [],
         });
 
         setLoading(false);
       } catch (err) {
-        console.error("❌ Error fetching receipt:", err);
-
-        // Normalize error into a string we can render safely
         let message = "Failed to fetch receipt";
         if (err.response && err.response.data) {
-          // If Spring sent an error body (object), pick message or stringify
           const data = err.response.data;
           if (typeof data === "string") message = data;
           else if (data.message) message = data.message;
@@ -61,7 +60,6 @@ export default function ReceiptScreen() {
         } else if (err.message) {
           message = err.message;
         }
-
         setError(message);
         setLoading(false);
       }
@@ -81,142 +79,235 @@ export default function ReceiptScreen() {
 
   if (loading) {
     return (
-      <Box className={`${styles.root} ${styles.navy}`}>
-        <Box className={`${styles.main} ${styles.center}`}>
-          <CircularProgress color="inherit" />
-        </Box>
+      <Box
+        className={`${styles.root}`}
+        sx={{
+          backgroundColor: "#ff2040",
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress color="inherit" />
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box className={`${styles.root} ${styles.navy}`}>
-        <Box className={`${styles.main} ${styles.center}`}>
-          <Logo large />
-          <Alert severity="error">{error}</Alert>
-          <Button
-            variant="contained"
-            sx={{ mt: 3 }}
-            onClick={() => navigate("/")}
-          >
-            Back to Home
-          </Button>
-        </Box>
+      <Box
+        className={`${styles.root}`}
+        sx={{
+          backgroundColor: "#ff2040",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Logo large />
+        <Alert severity="error">{error}</Alert>
+        <Button
+          variant="contained"
+          sx={{
+            mt: 3,
+            backgroundColor: "#fff",
+            color: "#ff2040",
+            fontWeight: "bold",
+            "&:hover": { backgroundColor: "#f5f5f5" },
+          }}
+          onClick={() => navigate("/")}
+        >
+          Back to Home
+        </Button>
       </Box>
     );
   }
 
   return (
-    <Box className={`${styles.root} ${styles.navy}`}>
-      <Box className={`${styles.main} ${styles.center}`}>
-        <Logo large />
+    <Box
+      className={`${styles.root}`}
+      sx={{
+        backgroundColor: "#ff2040", // consistent red tone
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
+      }}
+    >
+      <Logo large />
 
-        <Typography variant="h3" gutterBottom>
-          Receipt Printing
+      <Typography
+        variant="h3"
+        gutterBottom
+        sx={{
+          color: "#fff",
+          fontWeight: "bold",
+          textAlign: "center",
+          mb: 3,
+        }}
+      >
+        Receipt
+      </Typography>
+
+      {/* ✅ Subtle scrollbar */}
+      <Box
+        sx={{
+          backgroundColor: "#fff",
+          borderRadius: "16px",
+          padding: "24px",
+          width: "80%",
+          maxWidth: "420px",
+          maxHeight: "420px",
+          overflowY: "auto",
+          boxShadow: "0 6px 15px rgba(0,0,0,0.15)",
+          color: "#000000dd",
+
+          // 🌿 Very subtle scrollbar styling
+          "&::-webkit-scrollbar": {
+            width: "4px",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "rgba(0,0,0,0.08)", // softer and more transparent
+            borderRadius: "10px",
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            backgroundColor: "rgba(0,0,0,0.15)",
+          },
+          "&::-webkit-scrollbar-track": {
+            backgroundColor: "transparent",
+          },
+        }}
+      >
+        <Typography
+          variant="h5"
+          align="center"
+          gutterBottom
+          sx={{ color: "#ff2040", fontWeight: 700 }}
+        >
+          {receipt.restaurantName}
+        </Typography>
+        <Typography align="center" variant="body2">
+          {receipt.restaurantAddress}
+        </Typography>
+        <Typography align="center" variant="body2">
+          {receipt.contactNumber}
+        </Typography>
+        <Typography align="center" variant="body2" gutterBottom>
+          {receipt.email}
         </Typography>
 
-        <Box
-          sx={{
-            backgroundColor: "#fff",
-            borderRadius: "16px",
-            padding: "24px",
-            marginTop: "24px",
-            width: "90%",
-            maxWidth: "500px",
-            maxHeight: "400px",
-            overflowY: "auto",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-            textAlign: "left",
-            color: "#000000dd",
-          }}
-        >
-          <Typography variant="h5" align="center" gutterBottom>
-            {receipt.restaurantName}
-          </Typography>
-          <Typography align="center" variant="body2">
-            {receipt.restaurantAddress}
-          </Typography>
-          <Typography align="center" variant="body2">
-            {receipt.contactNumber}
-          </Typography>
-          <Typography align="center" variant="body2" gutterBottom>
-            {receipt.email}
-          </Typography>
+        <Divider sx={{ my: 1.2 }} />
 
-          <hr />
+        <Typography variant="body1">
+          <strong>Order ID:</strong> {receipt.orderId}
+        </Typography>
+        <Typography variant="body1">
+          <strong>Order Type:</strong> {receipt.orderType}
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          <strong>Date:</strong>{" "}
+          {new Date(receipt.orderDateTime).toLocaleString()}
+        </Typography>
 
-          <Typography variant="body1">
-            <strong>Order ID:</strong> {receipt.orderId}
-          </Typography>
-          <Typography variant="body1">
-            <strong>Order Type:</strong> {receipt.orderType}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            <strong>Date:</strong>{" "}
-            {new Date(receipt.orderDateTime).toLocaleString()}
-          </Typography>
-
-          <hr />
-
-          <Typography variant="h6" gutterBottom>
-            Items:
-          </Typography>
-
-          {receipt.receiptItems.length > 0 ? (
-            receipt.receiptItems.map((item, index) => (
-              <Box key={index} sx={{ mb: "12px" }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    marginBottom: "4px",
-                  }}
-                >
-                  <Typography variant="body2">
-                    {item.quantity}x {item.itemName} ({item.itemSize})
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    ₱{item.subtotal?.toFixed(2) || "0.00"}
-                  </Typography>
-                </Box>
-                {/* ✅ Added individual price display */}
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block", textAlign: "right" }}>
-                  ₱{item.itemPrice?.toFixed(2) || "0.00"} 
-                </Typography>
-              </Box>
-            ))
-          ) : (
-            <Typography variant="body2" color="textSecondary">
-              No items found in this receipt.
-            </Typography>
-          )}
-
-          <hr />
-
-          <Typography variant="h6" align="right">
-            Total: ₱{receipt.totalPrice.toFixed(2)}
-          </Typography>
-        </Box>
+        <Divider sx={{ my: 1.2 }} />
 
         <Typography
           variant="h6"
-          sx={{ marginTop: "20px", color: "#ffffffff" }}
+          gutterBottom
+          sx={{ fontWeight: 600, color: "#ff2040" }}
         >
-          Pick up your order at the counter
+          Items
         </Typography>
 
-        <Button
-          variant="contained"
-          color="primary"
-          className={styles.largeButton}
-          sx={{ marginTop: "30px" }}
-          onClick={handleDone}
+        {receipt.receiptItems.length > 0 ? (
+          receipt.receiptItems.map((item, index) => (
+            <Box
+              key={index}
+              sx={{
+                mb: 1.5,
+                display: "flex",
+                flexDirection: "column",
+                borderBottom: "1px dashed rgba(0,0,0,0.1)",
+                pb: 1,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{ color: "#333", fontWeight: 500 }}
+                >
+                  {item.quantity}x {item.itemName} ({item.itemSize})
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: "bold", color: "#ff2040" }}
+                >
+                  ₱{item.subtotal?.toFixed(2) || "0.00"}
+                </Typography>
+              </Box>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ textAlign: "right", mt: 0.3 }}
+              >
+                ₱{item.itemPrice?.toFixed(2) || "0.00"} each
+              </Typography>
+            </Box>
+          ))
+        ) : (
+          <Typography variant="body2" color="textSecondary">
+            No items found in this receipt.
+          </Typography>
+        )}
+
+        <Divider sx={{ my: 1.2 }} />
+
+        <Typography
+          variant="h6"
+          align="right"
+          sx={{ fontWeight: "bold", color: "#000" }}
         >
-          Done
-        </Button>
+          Total: ₱{receipt.totalPrice.toFixed(2)}
+        </Typography>
       </Box>
+
+      <Typography
+        variant="h6"
+        sx={{
+          mt: 3,
+          color: "#fff",
+          textAlign: "center",
+          fontWeight: 500,
+        }}
+      >
+        Pick up your order at the counter
+      </Typography>
+
+      <Button
+        variant="contained"
+        className={styles.largeButton}
+        sx={{
+          marginTop: "30px",
+          backgroundColor: "#fff",
+          color: "#ff2040",
+          fontWeight: "bold",
+          "&:hover": { backgroundColor: "#f5f5f5" },
+        }}
+        onClick={handleDone}
+      >
+        Done
+      </Button>
     </Box>
   );
 }

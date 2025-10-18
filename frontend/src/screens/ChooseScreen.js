@@ -1,10 +1,17 @@
-import React, { useContext } from 'react';
-import Logo from '../components/Logo';
-import { Box, CardActionArea, CardContent, CardMedia, Fade, Typography, Card } from '@mui/material';
-import { useStyles } from '../styles';
-import { setOrderType } from '../actions';
-import { useNavigate } from 'react-router-dom';
-import { Store } from '../Store';
+import React, { useContext } from "react";
+import Logo from "../components/Logo";
+import {
+  Box,
+  CardActionArea,
+  CardContent,
+  CardMedia,
+  Fade,
+  Typography,
+} from "@mui/material";
+import { useStyles } from "../styles";
+import { setOrderType } from "../actions";
+import { useNavigate } from "react-router-dom";
+import { Store } from "../Store";
 
 export default function ChooseScreen() {
   const styles = useStyles();
@@ -13,25 +20,28 @@ export default function ChooseScreen() {
 
   const chooseHandler = async (orderType) => {
     try {
+      
       setOrderType(dispatch, orderType);
 
-      const formattedType = orderType.toUpperCase().replace(' ', '_'); 
+      const formattedType = orderType.toUpperCase().replace(" ", "_");
       const response = await fetch(
         `http://localhost:7000/order/type?orderType=${formattedType}`,
-        { method: 'POST' }
+        { method: "POST" }
       );
 
       if (response.ok) {
-        console.log('✅ Order type set successfully:', formattedType);
-        navigate('/order'); 
+        console.log("✅ Order type set successfully:", formattedType);
+        navigate("/order");
       } else {
         const errMsg = await response.text();
-        console.error('❌ Failed to set order type:', errMsg);
-        alert('Failed to set order type. Check backend connection.');
+        console.error("❌ Failed to set order type:", errMsg);
+        alert("Failed to set order type. Check backend connection.");
       }
     } catch (err) {
-      console.error('⚠️ Error connecting to backend:', err);
-      alert('Backend not reachable. Please ensure the Spring Boot server is running on port 7000.');
+      console.error("⚠️ Error connecting to backend:", err);
+      alert(
+        "Backend not reachable. Please ensure the Spring Boot server is running on port 7000."
+      );
     }
   };
 
@@ -42,11 +52,11 @@ export default function ChooseScreen() {
         <Box sx={{ mb: 6 }}>
           <Logo extraLarge />
         </Box>
-        
-        <Typography 
-          component="h3" 
-          variant="h3" 
-          className={styles.center} 
+
+        <Typography
+          component="h3"
+          variant="h3"
+          className={styles.center}
           gutterBottom
           sx={{
             fontWeight: '800',
