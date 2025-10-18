@@ -9,7 +9,18 @@ import {
 export const Store = createContext();
 
 const initialState = {
-  queueList: { loading: true, queue: [] },
+  queueList: { 
+    loading: true, 
+    queue: {
+      preparingOrders: [],
+      servingOrders: [],
+      totalPreparing: 0,
+      totalServing: 0,
+      lastUpdated: null,
+      success: false
+    }, 
+    error: null 
+  },
 };
 
 function reducer(state, action) {
@@ -21,16 +32,33 @@ function reducer(state, action) {
       };
 
     case ORDER_QUEUE_LIST_REQUEST:
-      return { ...state, queueList: { loading: true } };
+      return { 
+        ...state, 
+        queueList: { 
+          loading: true,
+          queue: state.queueList.queue, // Keep existing queue data while loading
+          error: null 
+        } 
+      };
+      
     case ORDER_QUEUE_LIST_SUCCESS:
       return {
         ...state,
-        queueList: { loading: false, queue: action.payload },
+        queueList: { 
+          loading: false, 
+          queue: action.payload,
+          error: null 
+        },
       };
+      
     case ORDER_QUEUE_LIST_FAIL:
       return {
         ...state,
-        queueList: { loading: false, error: action.payload },
+        queueList: { 
+          loading: false, 
+          error: action.payload,
+          queue: state.queueList.queue // Keep existing queue data on error
+        },
       };
 
     default:
