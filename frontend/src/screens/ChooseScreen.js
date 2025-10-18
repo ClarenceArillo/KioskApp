@@ -125,7 +125,7 @@ export default function ChooseScreen() {
               <CardMedia
                 component="img"
                 alt="Dine in"
-                image="/images/eatin.png"
+                image="/images/Dinein.png"
                 sx={{
                   width: "100%",
                   height: 210,
@@ -174,7 +174,7 @@ export default function ChooseScreen() {
               <CardMedia
                 component="img"
                 alt="Take out"
-                image="/images/takeout.png"
+                image="/images/Takeout.png"
                 sx={{
                   width: "100%",
                   height: 210,

@@ -19,7 +19,6 @@ import {
   Backdrop,
   Menu,
   MenuItem,
-  IconButton,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -282,50 +281,85 @@ export default function OrderScreen() {
         ) : (
           <>
             {/* LOGO */}
-            <Box sx={{ mb: 3, transform: 'scale(1.2)' }}>
+            <Box
+              sx={{
+                mb: 3,
+                transform: 'scale(1.4)',
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
               <Logo />
             </Box>
 
-            {categories.map((category) => (
-              <ListItem
-                key={category.name}
-                disablePadding
-                sx={{
-                  mb: 2,
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                }}
-                onClick={() => categoryClickHandler(category.name)}
-              >
-                <Avatar
-                  alt={category.name}
-                  src={category.image}
+            {categories.map((category) => {
+              const isSelected = categoryName === category.name;
+              return (
+                <ListItem
+                  key={category.name}
+                  disablePadding
                   sx={{
-                    width: 70,
-                    height: 70,
-                    border:
-                      categoryName === category.name
-                        ? '3px solid #ff2040'
-                        : '3px solid transparent',
-                    borderRadius: '25%',
-                    transition: '0.3s ease',
-                    boxShadow:
-                      categoryName === category.name
-                        ? '0 6px 18px rgba(255,32,64,0.4)'
-                        : '0 3px 8px rgba(0,0,0,0.08)',
-                    '&:hover': {
-                      transform: 'scale(1.07)',
-                      boxShadow: '0 8px 20px rgba(255,32,64,0.4)',
-                    },
+                    mb: 2,
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.25s ease',
+                    '&:hover': { transform: 'scale(1.05)' },
                   }}
-                />
-              </ListItem>
-            ))}
+                  onClick={() => categoryClickHandler(category.name)}
+                >
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      width: 90,
+                      height: 90,
+                      borderRadius: '25%',
+                      backgroundColor: isSelected ? '#ff2040' : '#fff',
+                      boxShadow: isSelected
+                        ? '0 8px 20px rgba(255,32,64,0.5)'
+                        : '0 4px 12px rgba(0,0,0,0.08)',
+                      border: isSelected ? '3px solid #ff2040' : '2px solid #eee',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.25s ease',
+                      '&:hover': {
+                        boxShadow: '0 10px 25px rgba(255,32,64,0.5)',
+                      },
+                    }}
+                  >
+                    <Avatar
+                      alt={category.name}
+                      src={category.image}
+                      sx={{
+                        width: 70,
+                        height: 70,
+                        borderRadius: '20%',
+                        objectFit: 'contain',
+                        backgroundColor: '#fff',
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        position: 'absolute',
+                        bottom: -24,
+                        fontWeight: 600,
+                        fontSize: '0.85rem',
+                        color: isSelected ? '#ff2040' : '#444',
+                        textAlign: 'center',
+                        textTransform: 'capitalize',
+                      }}
+                    >
+                      {category.name.replace(/_/g, ' ')}
+                    </Typography>
+                  </Box>
+                </ListItem>
+              );
+            })}
           </>
         )}
       </Box>
 
-      {/* ===== MAIN MENU (CENTER) ===== */}
+      {/* ===== MAIN MENU ===== */}
       <Box
         sx={{
           flexGrow: 1,
@@ -337,7 +371,6 @@ export default function OrderScreen() {
           boxShadow: 'inset 0 0 15px rgba(0,0,0,0.03)',
         }}
       >
-        {/* ===== CATEGORY TITLE + SORT FILTER ===== */}
         <Box
           sx={{
             display: 'flex',
@@ -357,7 +390,7 @@ export default function OrderScreen() {
             {categoryName || "What's New"}
           </Typography>
 
-          {/* Sort Filter Container */}
+          {/* Sort Menu */}
           <Box
             sx={{
               display: 'flex',
@@ -398,7 +431,6 @@ export default function OrderScreen() {
             </Typography>
           </Box>
 
-          {/* Sort Menu */}
           <Menu
             anchorEl={anchorEl}
             open={openSortMenu}
@@ -444,7 +476,7 @@ export default function OrderScreen() {
                 <Grid item xs={12} sm={6} md={4} lg={2.4} key={product.name}>
                   <Card
                     sx={{
-                      height: 260,
+                      height: 280, // fixed uniform height for smoothness
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
@@ -470,13 +502,16 @@ export default function OrderScreen() {
                         alt={product.name}
                         image={product.image}
                         sx={{
-                          height: 150,
+                          height: 160,
+                          width: '100%',
                           objectFit: 'contain',
-                          backgroundColor: '#ffffff',
+                          backgroundColor: '#fff',
                           borderRadius: '20px 20px 0 0',
-                          p: 1,
+                          p: 1.5,
+                          transition: 'transform 0.25s ease',
                         }}
                       />
+
                       <CardContent sx={{ textAlign: 'center', py: 1.5 }}>
                         <Typography
                           gutterBottom
