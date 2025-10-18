@@ -8,12 +8,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/queue")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:4000", "http://localhost:5000"})
 public class QueueMonitorController {
 
     private final CustomerOrdersRepository customerOrdersRepository;
@@ -24,8 +27,107 @@ public class QueueMonitorController {
         this.customerOrdersRepository = customerOrdersRepository;
     }
 
-    // Get all active orders (FIFO - by order ID)
-    // Get all active orders (FIFO - by order ID)
+    // Add this to your QueueMonitorController
+    @GetMapping("/test")
+    public Map<String, Object> testEndpoint() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Queue endpoint is working!");
+        response.put("timestamp", java.time.LocalDateTime.now().toString());
+        response.put("status", "success");
+
+        // Test data
+        response.put("testPreparingOrders", List.of(
+                Map.of("number", 10001, "orderId", 10001, "status", "PREPARING"),
+                Map.of("number", 10002, "orderId", 10002, "status", "PREPARING")
+        ));
+        response.put("testServingOrders", List.of(
+                Map.of("number", 10003, "orderId", 10003, "status", "NOW_SERVING")
+        ));
+
+        return response;
+    }
+
+    // MAIN ENDPOINT for QueueScreen - returns exactly what frontend expects
+    // MAIN ENDPOINT for QueueScreen - returns exactly what frontend expects
+    @GetMapping("/display")
+    public Map<String, Object> getQueueDisplay() {
+        List<CustomerOrder> preparingOrders = getPreparingOrders();
+        List<CustomerOrder> servingOrders = getReadyOrders(); // NOW_SERVING orders
+
+        // ✅ ADD DEBUG LOGGING
+        System.out.println("📊 Queue Display Request:");
+        System.out.println("   Preparing Orders: " + preparingOrders.size() + " orders");
+        preparingOrders.forEach(order ->
+                System.out.println("     - Order " + order.getOrderId() + " (" + order.getOrderStatus() + ")")
+        );
+        System.out.println("   Serving Orders: " + servingOrders.size() + " orders");
+        servingOrders.forEach(order ->
+                System.out.println("     - Order " + order.getOrderId() + " (" + order.getOrderStatus() + ")")
+        );
+
+        Map<String, Object> response = new HashMap<>();
+
+        // Transform to frontend format - EXACTLY what QueueScreen expects
+        response.put("preparingOrders", preparingOrders.stream()
+                .map(order -> {
+                    Map<String, Object> orderMap = new HashMap<>();
+                    orderMap.put("number", order.getOrderId());
+                    orderMap.put("orderId", order.getOrderId());
+                    orderMap.put("status", order.getOrderStatus());
+                    orderMap.put("orderType", order.getOrderType());
+                    orderMap.put("orderDateTime", order.getOrderDateTime());
+                    return orderMap;
+                })
+                .collect(Collectors.toList()));
+
+        response.put("servingOrders", servingOrders.stream()
+                .map(order -> {
+                    Map<String, Object> orderMap = new HashMap<>();
+                    orderMap.put("number", order.getOrderId());
+                    orderMap.put("orderId", order.getOrderId());
+                    orderMap.put("status", order.getOrderStatus());
+                    orderMap.put("orderType", order.getOrderType());
+                    orderMap.put("orderDateTime", order.getOrderDateTime());
+                    return orderMap;
+                })
+                .collect(Collectors.toList()));
+
+        response.put("totalPreparing", preparingOrders.size());
+        response.put("totalServing", servingOrders.size());
+        response.put("lastUpdated", java.time.LocalDateTime.now().toString());
+        response.put("success", true);
+
+        return response;
+    }
+
+    // Get orders currently being prepared (PREPARING status)
+    public List<CustomerOrder> getPreparingOrders() {
+        return customerOrdersRepository.findAll().stream()
+                .filter(order -> order.getOrderStatus() == OrderStatus.PREPARING)
+                .sorted((o1, o2) -> o1.getOrderId().compareTo(o2.getOrderId()))
+                .collect(Collectors.toList());
+    }
+
+    // Get orders ready for serving (NOW_SERVING status)
+    // In your QueueMonitorController - FIX THE getReadyOrders METHOD
+    // Get orders ready for serving (NOW_SERVING status ONLY - exclude DONE)
+    public List<CustomerOrder> getReadyOrders() {
+        return customerOrdersRepository.findAll().stream()
+                .filter(order -> order.getOrderStatus() == OrderStatus.NOW_SERVING) // ✅ REMOVED DONE from here
+                .sorted((o1, o2) -> o1.getOrderId().compareTo(o2.getOrderId()))
+                .collect(Collectors.toList());
+    }
+
+    // Get orders waiting to be prepared (PENDING status)
+    @GetMapping("/waiting")
+    public List<CustomerOrder> getWaitingOrders() {
+        return customerOrdersRepository.findAll().stream()
+                .filter(order -> order.getOrderStatus() == OrderStatus.PENDING)
+                .sorted((o1, o2) -> o1.getOrderId().compareTo(o2.getOrderId()))
+                .collect(Collectors.toList());
+    }
+
+    // Get all active orders
     @GetMapping("/active")
     public List<CustomerOrder> getActiveOrders() {
         return customerOrdersRepository.findAll().stream()
@@ -33,34 +135,7 @@ public class QueueMonitorController {
                         order.getOrderStatus() == OrderStatus.PREPARING ||
                         order.getOrderStatus() == OrderStatus.NOW_SERVING)
                 .sorted((o1, o2) -> o1.getOrderId().compareTo(o2.getOrderId()))
-                .toList();
-    }
-
-    // Get orders waiting to be prepared (FIFO)
-    @GetMapping("/waiting")
-    public List<CustomerOrder> getWaitingOrders() {
-        return customerOrdersRepository.findAll().stream()
-                .filter(order -> order.getOrderStatus() == OrderStatus.PENDING)
-                .sorted((o1, o2) -> o1.getOrderId().compareTo(o2.getOrderId()))
-                .toList();
-    }
-
-    // Get orders currently being prepared
-    @GetMapping("/preparing")
-    public List<CustomerOrder> getPreparingOrders() {
-        return customerOrdersRepository.findAll().stream()
-                .filter(order -> order.getOrderStatus() == OrderStatus.PREPARING)
-                .sorted((o1, o2) -> o1.getOrderId().compareTo(o2.getOrderId()))
-                .toList();
-    }
-
-    // Get orders ready for serving
-    @GetMapping("/ready")
-    public List<CustomerOrder> getReadyOrders() {
-        return customerOrdersRepository.findAll().stream()
-                .filter(order -> order.getOrderStatus() == OrderStatus.NOW_SERVING)
-                .sorted((o1, o2) -> o1.getOrderId().compareTo(o2.getOrderId()))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     // SSE endpoint for real-time updates
@@ -74,9 +149,10 @@ public class QueueMonitorController {
 
         // Send initial data
         try {
+            Map<String, Object> initialData = getQueueDisplay();
             emitter.send(SseEmitter.event()
                     .name("queue-update")
-                    .data(getQueueDisplayData()));
+                    .data(initialData));
         } catch (IOException e) {
             emitter.completeWithError(e);
         }
@@ -84,9 +160,9 @@ public class QueueMonitorController {
         return emitter;
     }
 
-    // Method to notify all clients of queue changes
+    // Method to notify all clients of queue changes - call this from KitchenService
     public void notifyQueueChange() {
-        QueueDisplayData displayData = getQueueDisplayData();
+        Map<String, Object> displayData = getQueueDisplay();
 
         List<SseEmitter> deadEmitters = new java.util.ArrayList<>();
         for (SseEmitter emitter : emitters) {
@@ -103,59 +179,56 @@ public class QueueMonitorController {
 
     // Get next order number in queue
     @GetMapping("/next")
-    public Integer getNextOrderNumber() {
+    public Map<String, Object> getNextOrderNumber() {
         List<CustomerOrder> pendingOrders = getWaitingOrders();
-        return !pendingOrders.isEmpty() ? pendingOrders.get(0).getOrderId() : null;
-    }
-
-    // Get current display data for queue monitor screen
-    @GetMapping("/display")
-    public QueueDisplayData getQueueDisplayData() {
-        List<CustomerOrder> waiting = getWaitingOrders();
-        List<CustomerOrder> preparing = getPreparingOrders();
-        List<CustomerOrder> ready = getReadyOrders();
-
-        return new QueueDisplayData(
-                !ready.isEmpty() ? ready.get(0).getOrderId() : null,
-                !preparing.isEmpty() ? preparing.get(0).getOrderId() : null,
-                waiting.stream().map(CustomerOrder::getOrderId).toList(),
-                waiting.size() + preparing.size() + ready.size()
-        );
+        Map<String, Object> response = new HashMap<>();
+        response.put("nextOrder", !pendingOrders.isEmpty() ? pendingOrders.get(0).getOrderId() : null);
+        response.put("totalWaiting", pendingOrders.size());
+        return response;
     }
 
     // Get order status by order ID
     @GetMapping("/status/{orderId}")
-    public String getOrderStatus(@PathVariable Integer orderId) {
+    public Map<String, Object> getOrderStatus(@PathVariable Integer orderId) {
         CustomerOrder order = customerOrdersRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
-        return order.getOrderStatus().toString();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("orderId", orderId);
+        response.put("status", order.getOrderStatus().toString());
+        response.put("orderType", order.getOrderType());
+        response.put("queuePosition", getQueuePosition(orderId));
+
+        return response;
     }
 
-    // DTO for queue display
-    public static class QueueDisplayData {
-        private Integer nowServing;
-        private Integer nextUp;
-        private List<Integer> waitingOrders;
-        private Integer totalActiveOrders;
-
-        public QueueDisplayData(Integer nowServing, Integer nextUp, List<Integer> waitingOrders, Integer totalActiveOrders) {
-            this.nowServing = nowServing;
-            this.nextUp = nextUp;
-            this.waitingOrders = waitingOrders;
-            this.totalActiveOrders = totalActiveOrders;
+    // Get queue position for an order
+    private Integer getQueuePosition(Integer orderId) {
+        List<CustomerOrder> activeOrders = getActiveOrders();
+        for (int i = 0; i < activeOrders.size(); i++) {
+            if (activeOrders.get(i).getOrderId().equals(orderId)) {
+                return i + 1;
+            }
         }
+        return null;
+    }
 
-        // Getters and setters
-        public Integer getNowServing() { return nowServing; }
-        public void setNowServing(Integer nowServing) { this.nowServing = nowServing; }
+    // Health check endpoint
+    @GetMapping("/health")
+    public Map<String, Object> healthCheck() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "UP");
+        response.put("timestamp", java.time.LocalDateTime.now().toString());
+        response.put("totalOrders", customerOrdersRepository.count());
 
-        public Integer getNextUp() { return nextUp; }
-        public void setNextUp(Integer nextUp) { this.nextUp = nextUp; }
+        List<CustomerOrder> preparing = getPreparingOrders();
+        List<CustomerOrder> serving = getReadyOrders();
+        List<CustomerOrder> waiting = getWaitingOrders();
 
-        public List<Integer> getWaitingOrders() { return waitingOrders; }
-        public void setWaitingOrders(List<Integer> waitingOrders) { this.waitingOrders = waitingOrders; }
+        response.put("preparingCount", preparing.size());
+        response.put("servingCount", serving.size());
+        response.put("waitingCount", waiting.size());
 
-        public Integer getTotalActiveOrders() { return totalActiveOrders; }
-        public void setTotalActiveOrders(Integer totalActiveOrders) { this.totalActiveOrders = totalActiveOrders; }
+        return response;
     }
 }
