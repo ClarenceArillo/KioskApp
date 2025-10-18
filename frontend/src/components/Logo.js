@@ -4,11 +4,17 @@ import { useStyles } from '../styles';
 export default function Logo(props) {
     const styles = useStyles();
     
-  return (
-    <img 
-    src="/images/Logo.png" 
-    alt="food order" 
-    className={props.large?styles.largeLogo: styles.logo}
-    ></img>
-  );
+    const getLogoClass = () => {
+        if (props.extraLarge) return styles.extraLargeLogo;
+        if (props.large) return styles.largeLogo;
+        return styles.logo;
+    };
+    
+    return (
+        <img 
+            src="/images/Logo.png" 
+            alt="food order" 
+            className={getLogoClass()}
+        />
+    );
 }

@@ -38,8 +38,25 @@ export default function ChooseScreen() {
   return (
     <Fade in={true}>
       <Box className={`${styles.chooseRoot} ${styles.red}`}>
-        <Logo />
-        <Typography component="h3" variant="h3" className={styles.center} gutterBottom>
+        {/* Extra Large Logo for ChooseScreen */}
+        <Box sx={{ mb: 6 }}>
+          <Logo extraLarge />
+        </Box>
+        
+        <Typography 
+          component="h3" 
+          variant="h3" 
+          className={styles.center} 
+          gutterBottom
+          sx={{
+            fontWeight: '800',
+            fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+            fontSize: '2.5rem',
+            letterSpacing: '1px',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+            mb: 8,
+          }}
+        >
           Where will you be eating today?
         </Typography>
 
