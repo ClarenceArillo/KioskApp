@@ -72,13 +72,11 @@ export default function ReceiptScreen() {
 
   const handleDone = () => {
     const orderId = localStorage.getItem("orderId");
-  if (!orderId) {
-    // fallback - just go home if no orderId for some reason
-    navigate("/");
-    return;
-  }
-  // navigate to completeorder with the orderId in the URL
-  navigate(`/completeorder/${orderId}`);
+    if (!orderId) {
+      navigate("/");
+      return;
+    }
+    navigate(`/completeorder/${orderId}`);
   };
 
   if (loading) {
@@ -109,7 +107,6 @@ export default function ReceiptScreen() {
     );
   }
 
-  // ✅ Render receipt safely
   return (
     <Box className={`${styles.root} ${styles.navy}`}>
       <Box className={`${styles.main} ${styles.center}`}>
@@ -168,19 +165,25 @@ export default function ReceiptScreen() {
 
           {receipt.receiptItems.length > 0 ? (
             receipt.receiptItems.map((item, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "8px",
-                }}
-              >
-                <Typography variant="body2">
-                  {item.quantity}x {item.itemName} ({item.itemSize})
-                </Typography>
-                <Typography variant="body2">
-                  ₱{item.subtotal?.toFixed(2) || "0.00"}
+              <Box key={index} sx={{ mb: "12px" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    marginBottom: "4px",
+                  }}
+                >
+                  <Typography variant="body2">
+                    {item.quantity}x {item.itemName} ({item.itemSize})
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    ₱{item.subtotal?.toFixed(2) || "0.00"}
+                  </Typography>
+                </Box>
+                {/* ✅ Added individual price display */}
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", textAlign: "right" }}>
+                  ₱{item.itemPrice?.toFixed(2) || "0.00"} 
                 </Typography>
               </Box>
             ))

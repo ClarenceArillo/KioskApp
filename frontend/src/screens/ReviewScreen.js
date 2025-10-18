@@ -31,28 +31,31 @@ export default function ReviewScreen() {
   const [product, setProduct] = useState({});
 
   const closeHandler = () => setIsOpen(false);
+  
   const productClickHandler = (p) => {
     setProduct(p);
+    // ✅ FIX: Set quantity to the current item's quantity, not 1
+    setQuantity(p.quantity || 1);
     setIsOpen(true);
   };
+
   const addToOrderHandler = async () => {
     try {
-      // Add to local state
+      // ✅ FIX: Remove the existing item first, then add with new quantity
+      removeFromOrder(dispatch, product);
+      
+      // Add to local state with updated quantity
       addToOrder(dispatch, { ...product, quantity });
       setIsOpen(false);
 
-      // Sync with backend
-      await fetch(`http://localhost:7000/order/${product.itemCategorySelected}/${product.itemId}/add`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...product,
-          itemQuantity: quantity,
-        }),
+      // ✅ FIX: Use PUT to update quantity in backend instead of POST
+      await fetch(`http://localhost:7000/order/cart/view/update?id=${product.itemId}&quantity=${quantity}&size=${product.size || 'M'}`, {
+        method: "PUT",
       });
-      console.log("✅ Synced item to backend cart:", product.name);
+      
+      console.log("✅ Updated item quantity in backend cart:", product.name, "to", quantity);
     } catch (error) {
-      console.error("❌ Failed to sync item to backend:", error);
+      console.error("❌ Failed to update item quantity in backend:", error);
     }
   };
 
@@ -130,7 +133,7 @@ export default function ReviewScreen() {
     <Box className={styles.root}>
       <Box className={`${styles.main} ${styles.red} ${styles.center}`}>
         <Dialog maxWidth="sm" fullWidth open={isOpen} onClose={closeHandler}>
-          <DialogTitle className={styles.center}>Add {product.name}</DialogTitle>
+          <DialogTitle className={styles.center}>Edit {product.name}</DialogTitle>
           <Box className={`${styles.row} ${styles.center}`}>
             <Button
               variant="contained"
@@ -141,7 +144,11 @@ export default function ReviewScreen() {
               <RemoveIcon />
             </Button>
             <TextField
-              inputProps={{ className: styles.largeInput, min: 1 }}
+              inputProps={{ 
+                className: styles.largeInput, 
+                min: 1,
+                readOnly: true // Prevent manual input for consistency
+              }}
               className={styles.largeNumber}
               type="number"
               variant="filled"
@@ -155,11 +162,11 @@ export default function ReviewScreen() {
             <Button
               onClick={cancelOrRemoveFromOrder}
               variant="contained"
-              color="primary"
+              color="error"
               size="large"
               className={styles.largeButton}
             >
-              {orderItems.find((x) => x.name === product.name) ? 'Remove From Order' : 'Cancel'}
+              Remove From Order
             </Button>
             <Button
               onClick={addToOrderHandler}
@@ -168,7 +175,7 @@ export default function ReviewScreen() {
               size="large"
               className={styles.largeButton}
             >
-              ADD To Order
+              Update Quantity
             </Button>
           </Box>
         </Dialog>

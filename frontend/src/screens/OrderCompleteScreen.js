@@ -121,7 +121,6 @@ export default function OrderCompleteScreen() {
           <Typography variant="h6">Order ID: {receipt?.orderId}</Typography>
           <Typography variant="body1">Type: {receipt?.orderType}</Typography>
           <Typography variant="body1" gutterBottom>
-            {/* ✅ FIX: Use dateTime instead of orderDateTime */}
             Date: {receipt?.dateTime ? new Date(receipt.dateTime).toLocaleString() : "N/A"}
           </Typography>
 
@@ -133,15 +132,18 @@ export default function OrderCompleteScreen() {
 
           {receipt?.receiptItems && receipt.receiptItems.length > 0 ? (
             receipt.receiptItems.map((item, i) => (
-              <Box
-                key={i}
-                sx={{ display: "flex", justifyContent: "space-between", mb: "8px" }}
-              >
-                <Typography variant="body2">
-                  {item.quantity}x {item.itemName} ({item.itemSize})
-                </Typography>
-                <Typography variant="body2">
-                  ₱{item.subtotal?.toFixed(2) || "0.00"}
+              <Box key={i} sx={{ mb: "12px" }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {item.quantity}x {item.itemName} ({item.itemSize})
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    ₱{item.subtotal?.toFixed(2) || "0.00"}
+                  </Typography>
+                </Box>
+                {/* ✅ Added individual price display */}
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", textAlign: "right" }}>
+                  ₱{item.itemPrice?.toFixed(2) || "0.00"}
                 </Typography>
               </Box>
             ))
