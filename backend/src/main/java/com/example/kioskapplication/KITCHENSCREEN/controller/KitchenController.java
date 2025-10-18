@@ -60,6 +60,17 @@ public class KitchenController {
         return kitchenService.getOrderByStatus(OrderStatus.DONE);
     }
 
+    @GetMapping("/stream")
+    public SseEmitter streamOrders() {
+        return kitchenService.streamOrders();
+    }
+
+    @GetMapping("/queue")
+    public List<CustomerOrder> getQueue() {
+        // We want to return orders that are in the queue (PENDING, PREPARING, NOW_SERVING) sorted by orderDateTime (or orderId)
+        return kitchenService.getQueue();
+    }
+
 
 
 }

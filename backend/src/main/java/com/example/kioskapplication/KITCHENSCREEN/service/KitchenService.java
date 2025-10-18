@@ -3,6 +3,7 @@ package com.example.kioskapplication.KITCHENSCREEN.service;
 import com.example.kioskapplication.KIOSKSCREEN.model.CustomerOrder;
 import com.example.kioskapplication.KIOSKSCREEN.model.OrderStatus;
 import com.example.kioskapplication.KIOSKSCREEN.repository.CustomerOrdersRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Service
 public class KitchenService {
@@ -17,22 +19,23 @@ public class KitchenService {
     private final CustomerOrdersRepository customerOrdersRepository;
     private final List<SseEmitter> emitters = new ArrayList<>();
 
-    KitchenService(CustomerOrdersRepository customerOrdersRepository) {
+    @Autowired
+    public KitchenService(CustomerOrdersRepository customerOrdersRepository) {
         this.customerOrdersRepository = customerOrdersRepository;
     }
 
-    public List <CustomerOrder> getOrderByStatus (OrderStatus orderStatus) {
+    public List<CustomerOrder> getOrderByStatus(OrderStatus orderStatus) {
         return customerOrdersRepository.findAll().stream()
                 .filter(order -> order.getOrderStatus() == orderStatus)
                 .sorted(Comparator.comparing(CustomerOrder::getOrderId))
                 .toList();
     }
 
-    public CustomerOrder updateOrderStatus (Integer orderId, OrderStatus newStatus){
+    public CustomerOrder updateOrderStatus(Integer orderId, OrderStatus newStatus) {
         CustomerOrder customerOrder = customerOrdersRepository.findById(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Customer Order Not Found"));
 
-        switch(newStatus){
+        switch(newStatus) {
             case PREPARING -> {
                 if (customerOrder.getOrderStatus() != OrderStatus.PENDING)
                     throw new IllegalArgumentException("Only PENDING orders can be started");
@@ -48,8 +51,12 @@ public class KitchenService {
         }
 
         customerOrder.setOrderStatus(newStatus);
-        return customerOrdersRepository.save(customerOrder);
+        CustomerOrder updatedOrder = customerOrdersRepository.save(customerOrder);
 
+        // Notify kitchen about the update
+        notifyKitchen(updatedOrder);
+
+        return updatedOrder;
     }
 
     public SseEmitter streamOrders() {
@@ -62,17 +69,25 @@ public class KitchenService {
     }
 
     public void notifyKitchen(CustomerOrder newOrder) {
-        List <SseEmitter> deadEmitters = new ArrayList<>();
+        List<SseEmitter> deadEmitters = new ArrayList<>();
         for (SseEmitter emitter : emitters) {
-            try{
+            try {
                 emitter.send(SseEmitter.event()
                         .name("new-order")
                         .data(newOrder));
-            }catch (Exception e){
+            } catch (Exception e) {
                 deadEmitters.add(emitter);
             }
         }
         emitters.removeAll(deadEmitters);
     }
 
+    public List<CustomerOrder> getQueue() {
+        return customerOrdersRepository.findAll().stream()
+                .filter(order -> order.getOrderStatus() == OrderStatus.PENDING ||
+                        order.getOrderStatus() == OrderStatus.PREPARING ||
+                        order.getOrderStatus() == OrderStatus.NOW_SERVING)
+                .sorted(Comparator.comparing(CustomerOrder::getOrderDateTime))
+                .collect(Collectors.toList());
+    }
 }
