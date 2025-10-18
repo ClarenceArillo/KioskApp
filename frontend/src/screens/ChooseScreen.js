@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import Logo from '../components/Logo';
-import { Box, CardActionArea, CardContent, CardMedia, Fade, Typography } from '@mui/material';
+import { Box, CardActionArea, CardContent, CardMedia, Fade, Typography, Card } from '@mui/material';
 import { useStyles } from '../styles';
 import { setOrderType } from '../actions';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,6 @@ export default function ChooseScreen() {
 
   const chooseHandler = async (orderType) => {
     try {
-      
       setOrderType(dispatch, orderType);
 
       const formattedType = orderType.toUpperCase().replace(' ', '_'); 
@@ -44,34 +43,38 @@ export default function ChooseScreen() {
           Where will you be eating today?
         </Typography>
 
-        <Box className={styles.cards}>
-          <CardActionArea onClick={() => chooseHandler('Dine in')}>
-            <CardMedia
-              component="img"
-              alt="Dine in"
-              image="/images/eatin.png"
-              className={styles.media}
-            />
-            <CardContent>
-              <Typography gutterBottom variant="h4" color="textPrimary" component="p">
-                Dine in
-              </Typography>
-            </CardContent>
-          </CardActionArea>
+        <Box className={styles.cardsContainer}>
+          <Card className={styles.choiceCard}>
+            <CardActionArea className={styles.cardActionArea} onClick={() => chooseHandler('Dine in')}>
+              <CardMedia
+                component="img"
+                alt="Dine in"
+                image="/images/Dinein.png"
+                className={styles.choiceMedia}
+              />
+              <CardContent className={styles.cardContent}>
+                <Typography gutterBottom variant="h4" color="textPrimary" component="p" className={styles.choiceText}>
+                  DINE IN
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+          </Card>
 
-          <CardActionArea onClick={() => chooseHandler('Take out')}>
-            <CardMedia
-              component="img"
-              alt="Take out"
-              image="/images/takeout.png"
-              className={styles.media}
-            />
-            <CardContent>
-              <Typography gutterBottom variant="h4" color="textPrimary" component="p">
-                Take out
-              </Typography>
-            </CardContent>
-          </CardActionArea>
+          <Card className={styles.choiceCard}>
+            <CardActionArea className={styles.cardActionArea} onClick={() => chooseHandler('Take out')}>
+              <CardMedia
+                component="img"
+                alt="Take out"
+                image="/images/Takeout.png"
+                className={styles.choiceMedia}
+              />
+              <CardContent className={styles.cardContent}>
+                <Typography gutterBottom variant="h4" color="textPrimary" component="p" className={styles.choiceText}>
+                  TAKE OUT
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+          </Card>
         </Box>
       </Box>
     </Fade>
