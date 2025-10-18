@@ -1,71 +1,123 @@
-import React, { useState } from 'react';
-import { Box, Button, Divider, Paper, Typography } from '@mui/material';
+// src/screens/PreparingOrdersScreen.js
+import React, { useState, useEffect, useContext } from 'react';
+import { Box, Button, Divider, Paper, Typography, CircularProgress } from '@mui/material';
 import { useStyles } from '../styles';
+import { Store } from '../Store';
+import KitchenApiService from '../services/kitchenApi';
 
 export default function PreparingOrdersScreen() {
   const styles = useStyles();
+  const { dispatch } = useContext(Store);
+  const [orders, setOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [orders, setOrders] = useState([
-    {
-      _id: 1,
-      number: 1083,
-      state: 'PREPARING',
-      orderType: 'DINE IN',
-      date: '10/18/2025',
-      orderItems: [
-        { name: 'SINIGANG NA BABOY W RICE', quantity: 1 },
-        { name: 'HALO-HALONG GALIT', quantity: 2 },
-        { name: 'LECHE KA', quantity: 4 },
-      ],
-    },
-    { _id: 2, number: 1084, state: 'TO_PREPARE' },
-    { _id: 3, number: 1085, state: 'TO_PREPARE' },
-  ]);
+  // Load orders on component mount
+  useEffect(() => {
+    loadOrders();
+    setupRealTimeUpdates();
 
-  const [selectedOrder, setSelectedOrder] = useState(orders[0]);
+    const interval = setInterval(() => {
+      loadOrders();
+    }, 5000); // Refresh every 5 seconds
 
-  const handleStart = (order) => {
-    const index = orders.findIndex((o) => o._id === order._id);
-    const previousOrders = orders.slice(0, index);
-    const unfinishedBefore = previousOrders.find(
-      (o) => o.state !== 'DONE' && o.state !== 'NOW_SERVING'
-    );
+  return () => clearInterval(interval);
+  }, []);
 
-    if (unfinishedBefore) {
-      alert('You must finish the previous order first (click READY).');
-      return;
+  const loadOrders = async () => {
+    try {
+      setLoading(true);
+      const pendingOrders = await KitchenApiService.getOrdersByStatus('PENDING');
+      const preparingOrders = await KitchenApiService.getOrdersByStatus('PREPARING');
+      const servingOrders = await KitchenApiService.getOrdersByStatus('NOW_SERVING');
+      
+      // Combine and sort by order number (FIFO)
+      const allOrders = [...pendingOrders, ...preparingOrders, ...servingOrders]
+        .sort((a, b) => a.number - b.number);
+
+      console.log('📦 Loaded orders:', allOrders);
+      setOrders(allOrders);
+    } catch (error) {
+      console.error('Failed to load orders:', error);
+      alert('Cannot connect to kitchen backend. Please ensure the Spring Boot server is running on port 7000.');
+    } finally {
+      setLoading(false);
     }
-
-    const updated = orders.map((o) =>
-      o._id === order._id ? { ...o, state: 'PREPARING' } : o
-    );
-    setOrders(updated);
-    setSelectedOrder({ ...order, state: 'PREPARING' });
   };
 
-  const handleReady = (order) => {
-    const updated = orders.map((o) =>
-      o._id === order._id ? { ...o, state: 'NOW_SERVING' } : o
-    );
-    setOrders(updated);
-    setSelectedOrder({ ...order, state: 'NOW_SERVING' });
+  const setupRealTimeUpdates = () => {
+    KitchenApiService.setupOrderStream(
+    (newOrder) => {
+      loadOrders();
+    },
+    (statusChange) => {
+      loadOrders();
+    }
+  );
   };
 
-  const handleDone = (order) => {
-    const updated = orders.map((o) =>
-      o._id === order._id ? { ...o, state: 'DONE' } : o
-    );
-    setOrders(updated);
-    setSelectedOrder({ ...order, state: 'DONE' });
+  const handleStart = async (order) => {
+    try {
+      // Check FIFO restriction
+      const canStart = canStartOrder(order);
+      if (!canStart) {
+        alert('You must finish previous orders first (Follow FIFO rule).');
+        return;
+      }
+
+      await KitchenApiService.updateOrderStatus(order.number, 'PREPARING');
+      await loadOrders(); // Refresh orders
+      setSelectedOrder({ ...order, state: 'PREPARING' });
+    } catch (error) {
+      console.error('Failed to start order:', error);
+      alert('Failed to start order. Please try again.');
+    }
+  };
+
+  const handleReady = async (order) => {
+    try {
+      await KitchenApiService.updateOrderStatus(order.number, 'NOW_SERVING');
+      await loadOrders();
+      setSelectedOrder({ ...order, state: 'NOW_SERVING' });
+    } catch (error) {
+      console.error('Failed to mark order as ready:', error);
+      alert('Failed to update order status.');
+    }
+  };
+
+  const handleDone = async (order) => {
+    try {
+      await KitchenApiService.updateOrderStatus(order.number, 'DONE');
+      await loadOrders();
+      setSelectedOrder(null);
+    } catch (error) {
+      console.error('Failed to complete order:', error);
+      alert('Failed to complete order.');
+    }
   };
 
   const canStartOrder = (order) => {
-    if (order.state !== 'TO_PREPARE') return false;
-    const index = orders.findIndex((o) => o._id === order._id);
-    if (index === 0) return true;
-    const prevOrder = orders[index - 1];
-    return prevOrder.state === 'NOW_SERVING' || prevOrder.state === 'DONE';
+    if (order.state !== 'PENDING') return false;
+    
+    // FIFO: Only allow starting the oldest pending order
+    const pendingOrders = orders
+      .filter(o => o.state === 'PENDING')
+      .sort((a, b) => a.number - b.number);
+    
+    return pendingOrders.length > 0 && pendingOrders[0].number === order.number;
   };
+
+  if (loading) {
+    return (
+      <Box className={styles.orderRoot}>
+        <Box className={styles.orderHeaderRed}>PREPARING</Box>
+        <Box className={styles.center} sx={{ padding: 4 }}>
+          <CircularProgress />
+          <Typography>Loading orders...</Typography>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box className={styles.orderRoot}>
@@ -73,19 +125,9 @@ export default function PreparingOrdersScreen() {
 
       <Box className={styles.orderMain}>
         {/* LEFT SIDE: LIST OF ORDERS */}
-        <Box
-          className={styles.orderList}
-          sx={{
-            border: '1px solid #ffcdd2',
-            borderRadius: '10px',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-            padding: 2,
-            margin: 2,
-            backgroundColor: '#ffffff',
-          }}
-        >
+        <Box className={styles.orderList}>
           <Typography variant="h6" sx={{ marginBottom: 2 }}>
-            LIST OF ORDERS
+            LIST OF ORDERS (FIFO)
           </Typography>
 
           {orders.map((order) => (
@@ -109,18 +151,21 @@ export default function PreparingOrdersScreen() {
               }}
               onClick={() => setSelectedOrder(order)}
             >
-              <Typography>{order.number}</Typography>
+              <Typography>Order #{order.number}</Typography>
 
-              {order.state === 'TO_PREPARE' && canStartOrder(order) ? (
+              {order.state === 'PENDING' && canStartOrder(order) ? (
                 <Button
                   variant="contained"
                   size="small"
                   sx={{ bgcolor: 'limegreen', color: 'white' }}
-                  onClick={() => handleStart(order)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleStart(order);
+                  }}
                 >
                   START
                 </Button>
-              ) : order.state === 'TO_PREPARE' ? (
+              ) : order.state === 'PENDING' ? (
                 <Button variant="contained" size="small" disabled>
                   WAIT
                 </Button>
@@ -137,34 +182,15 @@ export default function PreparingOrdersScreen() {
         <Divider orientation="vertical" flexItem className={styles.orderDividerRed} />
 
         {/* RIGHT SIDE: ORDER DETAILS */}
-        <Box
-          className={styles.orderDetailsRed}
-          sx={{
-            border: '1px solid #ffcdd2',
-            borderRadius: '10px',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-            padding: 3,
-            margin: 2,
-            backgroundColor: '#ffffff',
-          }}
-        >
+        <Box className={styles.orderDetailsRed}>
           {selectedOrder ? (
             <>
-              <Paper
-                className={styles.orderHeaderBoxRed}
-                sx={{
-                  padding: 2,
-                  marginBottom: 2,
-                  border: '1px solid #ef9a9a',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-                }}
-              >
+              <Paper className={styles.orderHeaderBoxRed}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                   ORDER NO. {selectedOrder.number}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#d32f2f' }}>
-                  {selectedOrder.orderType || ''} | DATE:{' '}
-                  {selectedOrder.date || ''}
+                  {selectedOrder.orderType} | DATE: {selectedOrder.date}
                 </Typography>
               </Paper>
 
@@ -177,25 +203,16 @@ export default function PreparingOrdersScreen() {
                     paddingBottom: 0.5,
                   }}
                 >
-                  {item.quantity}x {item.name}
+                  {item.quantity}x {item.name} ({item.size}) - ₱{item.price}
                 </Typography>
               ))}
 
               {['PREPARING', 'NOW_SERVING'].includes(selectedOrder.state) && (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginTop: 2,
-                  }}
-                >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
                   <Button
                     variant="contained"
                     sx={{
-                      bgcolor:
-                        selectedOrder.state === 'NOW_SERVING'
-                          ? '#9e9e9e'
-                          : '#ff2040',
+                      bgcolor: selectedOrder.state === 'NOW_SERVING' ? '#9e9e9e' : '#ff2040',
                       color: 'white',
                     }}
                     disabled={selectedOrder.state === 'NOW_SERVING'}
@@ -207,10 +224,7 @@ export default function PreparingOrdersScreen() {
                   <Button
                     variant="contained"
                     sx={{
-                      bgcolor:
-                        selectedOrder.state === 'NOW_SERVING'
-                          ? '#ff2040'
-                          : '#9e9e9e',
+                      bgcolor: selectedOrder.state === 'NOW_SERVING' ? '#ff2040' : '#9e9e9e',
                       color: 'white',
                     }}
                     disabled={selectedOrder.state !== 'NOW_SERVING'}
