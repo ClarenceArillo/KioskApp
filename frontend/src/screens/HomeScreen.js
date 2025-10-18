@@ -14,7 +14,6 @@ export default function HomeScreen() {
     try {
       const response = await axios.post('http://localhost:7000/order/start');
       console.log('Order started:', response.data);
-
       navigate('/choose');
     } catch (error) {
       console.error('Failed to start order:', error);
@@ -23,21 +22,104 @@ export default function HomeScreen() {
   };
 
   return (
-    <Card className={styles.cardFull}>
-      <CardActionArea onClick={handleStart}>
-        <Box className={[styles.root, styles.red]}>
-          <Box className={[styles.main, styles.center]}>
-            <Typography component="h6" variant="h6">
-              Fast & Easy
-            </Typography>
-            <Typography component="h1" variant="h1">
-              Order <br /> & pay <br /> here
-            </Typography>
-            <TouchAppIcon fontSize="large" />
-          </Box>
-          <Box className={[styles.center, styles.green]}>
+    <Card
+      className={styles.cardFull}
+      style={{
+        backgroundColor: '#ff193d',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        overflow: 'hidden',
+      }}
+    >
+      <CardActionArea onClick={handleStart} style={{ flexGrow: 1 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            textAlign: 'center',
+            color: 'white',
+            height: '85%',
+            fontWeight: 'bold',
+          }}
+        >
+          <Typography
+            component="h6"
+            variant="h6"
+            sx={{
+              mb: 2,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+            }}
+          >
+            Fast & Easy
+          </Typography>
+
+          <Typography
+            component="h1"
+            variant="h1"
+            sx={{
+              fontWeight: 900,
+              fontSize: '6rem',
+              lineHeight: 1.1,
+              textTransform: 'uppercase',
+              textShadow: '0px 4px 10px rgba(0, 0, 0, 0.3)',
+            }}
+          >
+            Order <br /> & Pay <br /> Here
+          </Typography>
+
+          <TouchAppIcon
+            sx={{
+              mt: 3,
+              fontSize: 40,
+              color: 'white',
+              animation: 'bounce 2s infinite',
+              '@keyframes bounce': {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-8px)' },
+              },
+            }}
+          />
+        </Box>
+
+        <Box
+          sx={{
+            backgroundColor: '#00b020',
+            borderTopLeftRadius: '30px',
+            borderTopRightRadius: '30px',
+            padding: '18px 32px',
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1.5,
+            height: '15%',
+            boxShadow: '0 -5px 15px rgba(0,0,0,0.2)',
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center', 
+              gap: 1.5,
+            }}
+          >
             <Logo large />
-            <Typography component="h5" variant="h5">
+            <Typography
+              component="h5"
+              variant="h5"
+              sx={{
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '1.6rem',
+                textTransform: 'capitalize',
+                lineHeight: 1, 
+              }}
+            >
               Touch to start
             </Typography>
           </Box>

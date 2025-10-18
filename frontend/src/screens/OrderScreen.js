@@ -15,29 +15,45 @@ import {
   DialogTitle,
   Button,
   TextField,
+  DialogContent,
+  Backdrop,
+  Menu,
+  MenuItem,
+  IconButton,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import { addToOrder, clearOrder, listCategories, listProducts, removeFromOrder } from '../actions';
+import SortIcon from '@mui/icons-material/Sort';
+import {
+  addToOrder,
+  clearOrder,
+  listCategories,
+  listProducts,
+  removeFromOrder,
+} from '../actions';
 import { Store } from '../Store';
 import Logo from '../components/Logo';
-import { useStyles } from '../styles';
 import { useNavigate } from 'react-router-dom';
-import categories from '../categoryData';
 
-export default function OrderScreen(props) {
-  const styles = useStyles();
+export default function OrderScreen() {
   const navigate = useNavigate();
   const [categoryName, setCategoryName] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
   const [product, setProduct] = useState({});
+  const [sortOrder, setSortOrder] = useState('default');
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const { state, dispatch } = useContext(Store);
   const { categories, loading, error } = state.categoryList;
-  const { products, loading: loadingProducts, error: errorProducts } = state.productList;
-  const { orderItems = [], taxPrice = 0, totalPrice = 0, itemsCount = 0, orderType = 'Dine In' } = state.order || {};
-
+  const { products, loading: loadingProducts, error: errorProducts } =
+    state.productList;
+  const {
+    orderItems = [],
+    totalPrice = 0,
+    itemsCount = 0,
+    orderType = 'Dine In',
+  } = state.order || {};
 
   useEffect(() => {
     listCategories(dispatch);
@@ -46,6 +62,13 @@ export default function OrderScreen(props) {
   useEffect(() => {
     listProducts(dispatch, categoryName);
   }, [dispatch, categoryName]);
+
+  const openSortMenu = Boolean(anchorEl);
+  const handleSortClick = (event) => setAnchorEl(event.currentTarget);
+  const handleSortClose = (option) => {
+    if (option) setSortOrder(option);
+    setAnchorEl(null);
+  };
 
   const categoryClickHandler = (name) => {
     setCategoryName(name);
@@ -59,33 +82,26 @@ export default function OrderScreen(props) {
     setIsOpen(true);
   };
 
-  // OrderScreen.js — inside component
   const addToOrderhandler = async () => {
     try {
-      const category = (product.itemCategorySelected || "WHATS_NEW").toUpperCase();
+      const category = (product.itemCategorySelected || 'WHATS_NEW').toUpperCase();
       const itemId = product.itemId || product.id;
 
-      console.log(`🛒 Adding item ${itemId} from category ${category}...`);
-
-      // Build payload exactly as actions.addToOrder expects
       const payload = {
-        itemId: itemId,
+        itemId,
         itemName: product.name || product.itemName,
         itemPrice: product.price || product.itemPrice,
         itemQuantity: quantity || 1,
-        itemSize: product.itemSize || product.size || "M",
+        itemSize: product.itemSize || product.size || 'M',
         itemCategorySelected: category,
-        itemImageUrl: product.image || product.itemImageUrl || "",
+        itemImageUrl: product.image || product.itemImageUrl || '',
       };
 
-      // Call the centralized action which will POST to backend once and update store
       await addToOrder(dispatch, payload);
-
-      console.log(`✅ Added to order: ${product.name}`);
       setIsOpen(false);
     } catch (err) {
-      console.error("❌ Failed to add item:", err);
-      alert("Could not add item. Please try again.");
+      console.error('❌ Failed to add item:', err);
+      alert('Could not add item. Please try again.');
     }
   };
 
@@ -94,13 +110,8 @@ export default function OrderScreen(props) {
     setIsOpen(false);
   };
 
-  const closeHandler = () => {
-    setIsOpen(false);
-  };
-
-  const previewOrderHandler = () => {
-    navigate('/review');
-  };
+  const closeHandler = () => setIsOpen(false);
+  const previewOrderHandler = () => navigate('/review');
 
   return (
     <Box
@@ -108,66 +119,142 @@ export default function OrderScreen(props) {
         display: 'flex',
         flexDirection: 'row',
         height: '100vh',
-        backgroundColor: '#fafafa',
+        backgroundColor: '#f9f9f9',
         overflow: 'hidden',
-        position: 'relative', // needed for bottom bar positioning
       }}
     >
       {/* ===== PRODUCT MODAL ===== */}
-      <Dialog maxWidth="sm" fullWidth open={isOpen} onClose={closeHandler}>
-        <DialogTitle className={styles.center}>Add {product.name}</DialogTitle>
-        <Box className={[styles.row, styles.center]}>
-          <Button
-            variant="contained"
-            color="primary"
-            disabled={quantity === 1}
-            onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-          >
-            <RemoveIcon />
-          </Button>
-          <TextField
-            inputProps={{ className: styles.largeInput }}
-            InputProps={{
-              bar: true,
-              inputProps: { className: styles.largeInput },
-            }}
-            className={styles.largeNumber}
-            type="number"
-            variant="filled"
-            min={1}
-            value={quantity}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setQuantity(quantity + 1)}
-          >
-            <AddIcon />
-          </Button>
-        </Box>
+      <Dialog
+        maxWidth="sm"
+        fullWidth
+        open={isOpen}
+        onClose={closeHandler}
+        slots={{
+          backdrop: (props) => (
+            <Backdrop
+              {...props}
+              sx={{
+                backdropFilter: 'blur(6px)',
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+              }}
+            />
+          ),
+        }}
+        PaperProps={{
+          sx: {
+            width: '55%',
+            maxWidth: 400,
+            borderRadius: 4,
+            boxShadow: '0 0 35px rgba(255,255,255,0.6)',
+            border: '2px solid #f1f1f1',
+            backgroundColor: '#fff',
+            paddingY: 1,
+            transition: 'all 0.3s ease',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            textAlign: 'center',
+            fontWeight: 700,
+            fontSize: '1.4rem',
+            color: '#ff2040',
+            borderBottom: '1px solid #f0f0f0',
+          }}
+        >
+          Add {product.name}
+        </DialogTitle>
 
-        <Box className={[styles.row, styles.around]} sx={{ mt: 2 }}>
-          <Button
-            onClick={cancelOrRemoveFromOrder}
-            variant="contained"
-            color="error"
-            size="large"
-            className={styles.largeButton}
+        <DialogContent>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: 2,
+              mt: 2,
+            }}
           >
-            {orderItems.find((x) => x.name === product.name)
-              ? 'Remove From Order'
-              : 'Cancel'}
-          </Button>
-          <Button
-            onClick={addToOrderhandler}
-            variant="contained"
-            color="primary"
-            size="large"
-            className={styles.largeButton}
+            <Button
+              variant="contained"
+              disabled={quantity === 1}
+              onClick={() => quantity > 1 && setQuantity(quantity - 1)}
+              sx={{
+                backgroundColor: '#ff2040',
+                '&:hover': { backgroundColor: '#e01b36' },
+                borderRadius: 2,
+              }}
+            >
+              <RemoveIcon />
+            </Button>
+
+            <TextField
+              inputProps={{
+                style: {
+                  textAlign: 'center',
+                  fontSize: '1.4rem',
+                  fontWeight: 600,
+                  width: '60px',
+                },
+              }}
+              variant="outlined"
+              value={quantity}
+              onChange={(e) => setQuantity(Number(e.target.value))}
+            />
+
+            <Button
+              variant="contained"
+              onClick={() => setQuantity(quantity + 1)}
+              sx={{
+                backgroundColor: '#ff2040',
+                '&:hover': { backgroundColor: '#e01b36' },
+                borderRadius: 2,
+              }}
+            >
+              <AddIcon />
+            </Button>
+          </Box>
+
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              mt: 3,
+              gap: 2,
+            }}
           >
-            Add to Order
-          </Button>
-        </Box>
+            <Button
+              onClick={cancelOrRemoveFromOrder}
+              variant="contained"
+              color="error"
+              sx={{
+                flex: 1,
+                fontWeight: 600,
+                borderRadius: 2,
+                textTransform: 'none',
+              }}
+            >
+              {orderItems.find((x) => x.name === product.name)
+                ? 'Remove From Order'
+                : 'Cancel'}
+            </Button>
+
+            <Button
+              onClick={addToOrderhandler}
+              variant="contained"
+              sx={{
+                flex: 1,
+                fontWeight: 600,
+                borderRadius: 2,
+                backgroundColor: '#ff2040',
+                '&:hover': { backgroundColor: '#e01b36' },
+                textTransform: 'none',
+              }}
+            >
+              Add to Order
+            </Button>
+          </Box>
+        </DialogContent>
       </Dialog>
 
       {/* ===== LEFT SIDEBAR ===== */}
@@ -178,14 +265,14 @@ export default function OrderScreen(props) {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          paddingY: 3,
-          paddingX: 1,
+          py: 3,
           borderRight: '3px solid #f5f5f5',
-          boxShadow: '4px 0 8px rgba(0,0,0,0.05)',
+          boxShadow: '4px 0 12px rgba(0,0,0,0.06)',
           height: '100vh',
           overflowY: 'hidden',
-          position: 'sticky',
-          top: 0,
+          flexShrink: 0,
+          borderTopRightRadius: '30px',
+          borderBottomRightRadius: '30px',
         }}
       >
         {loading ? (
@@ -194,9 +281,11 @@ export default function OrderScreen(props) {
           <Alert severity="error">{error}</Alert>
         ) : (
           <>
-            <Box sx={{ mb: 2 }}>
+            {/* LOGO */}
+            <Box sx={{ mb: 3, transform: 'scale(1.2)' }}>
               <Logo />
             </Box>
+
             {categories.map((category) => (
               <ListItem
                 key={category.name}
@@ -218,11 +307,15 @@ export default function OrderScreen(props) {
                       categoryName === category.name
                         ? '3px solid #ff2040'
                         : '3px solid transparent',
-                    borderRadius: '20%',
+                    borderRadius: '25%',
                     transition: '0.3s ease',
+                    boxShadow:
+                      categoryName === category.name
+                        ? '0 6px 18px rgba(255,32,64,0.4)'
+                        : '0 3px 8px rgba(0,0,0,0.08)',
                     '&:hover': {
-                      transform: 'scale(1.05)',
-                      borderColor: '#ff2040',
+                      transform: 'scale(1.07)',
+                      boxShadow: '0 8px 20px rgba(255,32,64,0.4)',
                     },
                   }}
                 />
@@ -237,93 +330,181 @@ export default function OrderScreen(props) {
         sx={{
           flexGrow: 1,
           overflowY: 'auto',
-          padding: 4,
-          pb: 12, // add bottom padding so content doesn’t hide behind the bar
+          px: 5,
+          pb: 12,
+          background: 'linear-gradient(to bottom right, #ffffff, #fdfdfd)',
+          borderRadius: '30px 0 0 30px',
+          boxShadow: 'inset 0 0 15px rgba(0,0,0,0.03)',
         }}
       >
-        <Typography
-          variant="h4"
-          component="h2"
+        {/* ===== CATEGORY TITLE + SORT FILTER ===== */}
+        <Box
           sx={{
-            fontWeight: 'bold',
-            color: '#ff2040',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             mb: 3,
-            textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
+            mt: 2,
           }}
         >
-          {categoryName || 'Main Menu'}
-        </Typography>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 'bold',
+              color: '#ff2040',
+            }}
+          >
+            {categoryName || "What's New"}
+          </Typography>
 
+          {/* Sort Filter Container */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              backgroundColor: '#fff',
+              border: '1.5px solid #f0f0f0',
+              borderRadius: '10px',
+              px: 2,
+              py: 0.6,
+              boxShadow: '0 3px 10px rgba(0,0,0,0.06)',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                borderColor: '#ff2040',
+                boxShadow: '0 4px 12px rgba(255,32,64,0.2)',
+              },
+            }}
+            onClick={handleSortClick}
+          >
+            <SortIcon sx={{ color: '#ff2040' }} />
+            <Typography variant="body1" sx={{ fontWeight: 600, color: '#444' }}>
+              Sort by:
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: '#ff2040',
+                fontWeight: 600,
+                textTransform: 'capitalize',
+              }}
+            >
+              {sortOrder === 'default'
+                ? 'Default'
+                : sortOrder === 'lowToHigh'
+                ? 'Lowest Price'
+                : 'Highest Price'}
+            </Typography>
+          </Box>
+
+          {/* Sort Menu */}
+          <Menu
+            anchorEl={anchorEl}
+            open={openSortMenu}
+            onClose={() => handleSortClose(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <MenuItem
+              onClick={() => handleSortClose('default')}
+              selected={sortOrder === 'default'}
+            >
+              Default
+            </MenuItem>
+            <MenuItem
+              onClick={() => handleSortClose('lowToHigh')}
+              selected={sortOrder === 'lowToHigh'}
+            >
+              Price: Low to High
+            </MenuItem>
+            <MenuItem
+              onClick={() => handleSortClose('highToLow')}
+              selected={sortOrder === 'highToLow'}
+            >
+              Price: High to Low
+            </MenuItem>
+          </Menu>
+        </Box>
+
+        {/* ===== PRODUCT GRID ===== */}
         {loadingProducts ? (
           <CircularProgress />
         ) : errorProducts ? (
           <Alert severity="error">{errorProducts}</Alert>
         ) : (
-          <Grid container spacing={3} justifyContent="center">
-            {products.map((product) => (
-              <Grid
-                item
-                xs={12}
-                sm={6}
-                md={4}
-                lg={2.4}
-                key={product.name}
-                display="flex"
-                justifyContent="center"
-              >
-                <Card
-                  sx={{
-                    borderRadius: 4,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    transition: '0.3s ease',
-                    width: '100%',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: '0 6px 16px rgba(0,0,0,0.12)',
-                    },
-                  }}
-                  onClick={() =>
-                    productClickHandler({
-                      ...product,
-                      itemCategorySelected: categoryName, // ✅ include category for backend
-                      itemId: product.id || product.itemId, // ✅ ensure itemId is passed too
-                    })
-                  }
-                >
-
-                  <CardActionArea>
-                    <CardMedia
-                      component="img"
-                      alt={product.name}
-                      image={product.image}
-                      sx={{
-                        width: '100%',
-                        height: 180,
-                        objectFit: 'contain',
-                        backgroundColor: '#ffffff',
-                      }}
-                    />
-                    <CardContent sx={{ textAlign: 'center' }}>
-                      <Typography
-                        gutterBottom
-                        variant="body1"
-                        sx={{ fontWeight: 600 }}
-                      >
-                        {product.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        ₱{product.price}
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              </Grid>
-            ))}
+          <Grid container spacing={3} justifyContent="center" alignItems="stretch">
+            {[...products]
+              .sort((a, b) => {
+                if (sortOrder === 'lowToHigh') return a.price - b.price;
+                if (sortOrder === 'highToLow') return b.price - a.price;
+                return 0;
+              })
+              .map((product) => (
+                <Grid item xs={12} sm={6} md={4} lg={2.4} key={product.name}>
+                  <Card
+                    sx={{
+                      height: 260,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      borderRadius: 4,
+                      boxShadow: '0 6px 18px rgba(0,0,0,0.12)',
+                      transition: '0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-6px)',
+                        boxShadow: '0 10px 25px rgba(255,32,64,0.35)',
+                      },
+                    }}
+                    onClick={() =>
+                      productClickHandler({
+                        ...product,
+                        itemCategorySelected: categoryName,
+                        itemId: product.id || product.itemId,
+                      })
+                    }
+                  >
+                    <CardActionArea sx={{ flexGrow: 1 }}>
+                      <CardMedia
+                        component="img"
+                        alt={product.name}
+                        image={product.image}
+                        sx={{
+                          height: 150,
+                          objectFit: 'contain',
+                          backgroundColor: '#ffffff',
+                          borderRadius: '20px 20px 0 0',
+                          p: 1,
+                        }}
+                      />
+                      <CardContent sx={{ textAlign: 'center', py: 1.5 }}>
+                        <Typography
+                          gutterBottom
+                          variant="body1"
+                          sx={{
+                            fontWeight: 600,
+                            color: '#333',
+                            fontSize: '0.95rem',
+                          }}
+                        >
+                          {product.name}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ color: '#ff2040', fontWeight: 600 }}
+                        >
+                          ₱{product.price}
+                        </Typography>
+                      </CardContent>
+                    </CardActionArea>
+                  </Card>
+                </Grid>
+              ))}
           </Grid>
         )}
       </Box>
 
-      {/* ===== BOTTOM CENTER ORDER SUMMARY BAR ===== */}
+      {/* ===== BOTTOM ORDER SUMMARY BAR ===== */}
       <Box
         sx={{
           position: 'fixed',
@@ -331,12 +512,12 @@ export default function OrderScreen(props) {
           left: '50%',
           transform: 'translateX(-50%)',
           backgroundColor: '#fff',
-          boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
-          borderTop: '2px solid #f5f5f5',
-          borderRadius: '12px 12px 0 0',
+          boxShadow: '0 -3px 15px rgba(0,0,0,0.15)',
+          borderRadius: '16px 16px 0 0',
+          borderTop: '3px solid #ff2040',
           padding: 2,
-          width: '70%',
-          maxWidth: 800,
+          width: '65%',
+          maxWidth: 750,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -344,18 +525,19 @@ export default function OrderScreen(props) {
         }}
       >
         <Box
-          className={`${styles.bordered} ${styles.space}`}
           sx={{
-            border: '1px solid #ccc',
-            borderRadius: 1,
+            border: '1.5px solid #ff2040',
+            borderRadius: 3,
             padding: 1,
-            fontWeight: 500,
+            fontWeight: 600,
             width: '100%',
             textAlign: 'center',
-            mb: 2,
+            mb: 1.5,
+            backgroundColor: '#fff',
+            boxShadow: '0 3px 8px rgba(255,32,64,0.2)',
           }}
         >
-          My Order -  {orderType}   |      Total:  ₱{totalPrice}      | Items:  {itemsCount}
+          My Order — {orderType} | Total: ₱{totalPrice} | Items: {itemsCount}
         </Box>
 
         <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
@@ -367,6 +549,11 @@ export default function OrderScreen(props) {
             variant="contained"
             color="error"
             fullWidth
+            sx={{
+              borderRadius: 3,
+              fontWeight: 600,
+              textTransform: 'none',
+            }}
           >
             Cancel Order
           </Button>
@@ -374,9 +561,15 @@ export default function OrderScreen(props) {
           <Button
             onClick={previewOrderHandler}
             variant="contained"
-            color="primary"
             fullWidth
             disabled={orderItems.length === 0}
+            sx={{
+              borderRadius: 3,
+              fontWeight: 600,
+              backgroundColor: '#ff2040',
+              '&:hover': { backgroundColor: '#e01b36' },
+              textTransform: 'none',
+            }}
           >
             View Order
           </Button>
