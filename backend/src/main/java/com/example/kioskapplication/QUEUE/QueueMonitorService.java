@@ -1,4 +1,4 @@
-\package com.example.kioskapplication.QUEUE;
+package com.example.kioskapplication.QUEUE;
 
 import com.example.kioskapplication.KIOSKSCREEN.model.CustomerOrder;
 import com.example.kioskapplication.KIOSKSCREEN.model.OrderStatus;

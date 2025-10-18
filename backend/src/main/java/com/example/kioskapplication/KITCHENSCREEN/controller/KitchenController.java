@@ -3,19 +3,23 @@ package com.example.kioskapplication.KITCHENSCREEN.controller;
 import com.example.kioskapplication.KIOSKSCREEN.model.CustomerOrder;
 import com.example.kioskapplication.KIOSKSCREEN.model.OrderStatus;
 import com.example.kioskapplication.KIOSKSCREEN.repository.CustomerOrdersRepository;
+
+import com.example.kioskapplication.KITCHENSCREEN.kitchenDTO.KitchenOrderDTO;
+import com.example.kioskapplication.KITCHENSCREEN.kitchenDTO.KitchenOrderItemDTO;
 import com.example.kioskapplication.KITCHENSCREEN.service.KitchenService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/kitchen")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:4000"})
 public class KitchenController {
 
-    private final List<SseEmitter> emitters = new ArrayList<>();
     private final CustomerOrdersRepository customerOrdersRepository;
     private final KitchenService kitchenService;
 
@@ -24,6 +28,21 @@ public class KitchenController {
         this.kitchenService = kitchenService;
     }
 
+    // GET order by ID - SIMPLE VERSION
+    @GetMapping("/to-prepare/{orderId}")
+    public ResponseEntity<CustomerOrder> getOrderById(@PathVariable Integer orderId) {
+        try {
+            CustomerOrder order = customerOrdersRepository.findById(orderId)
+                    .orElseThrow(() -> new NoSuchElementException("Order not found with ID: " + orderId));
+            return ResponseEntity.ok(order);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // GET pending/preparing/serving orders
     @GetMapping("/to-prepare")
     public List<Integer> getPendingOrders() {
         return kitchenService.getOrderByStatus(OrderStatus.PENDING)
@@ -32,12 +51,32 @@ public class KitchenController {
                 .toList();
     }
 
+    // GET done orders
     @GetMapping("/done")
     public List<Integer> getDoneOrders() {
         return kitchenService.getOrderByStatus(OrderStatus.DONE)
                 .stream()
                 .map(CustomerOrder::getOrderId)
                 .toList();
+    }
+
+    // GET done order details
+    @GetMapping("/done/{orderId}/view")
+    public ResponseEntity<CustomerOrder> getDoneOrderById(@PathVariable Integer orderId) {
+        try {
+            CustomerOrder order = customerOrdersRepository.findById(orderId)
+                    .orElseThrow(() -> new NoSuchElementException("Done order not found with ID: " + orderId));
+
+            if (order.getOrderStatus() != OrderStatus.DONE) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            return ResponseEntity.ok(order);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PutMapping("/to-prepare/{orderId}/start")
@@ -55,22 +94,9 @@ public class KitchenController {
         return kitchenService.updateOrderStatus(orderId, OrderStatus.DONE);
     }
 
-    @GetMapping("done/{orderId}/view")
-    public List<CustomerOrder> getDoneOrderById() {
-        return kitchenService.getOrderByStatus(OrderStatus.DONE);
-    }
-
+    // SSE for real-time updates
     @GetMapping("/stream")
     public SseEmitter streamOrders() {
         return kitchenService.streamOrders();
     }
-
-    @GetMapping("/queue")
-    public List<CustomerOrder> getQueue() {
-        // We want to return orders that are in the queue (PENDING, PREPARING, NOW_SERVING) sorted by orderDateTime (or orderId)
-        return kitchenService.getQueue();
-    }
-
-
-
 }
