@@ -1,10 +1,8 @@
 package com.example.kioskapplication.KIOSKSCREEN.service;
 
 import com.example.kioskapplication.KIOSKSCREEN.model.*;
-import com.example.kioskapplication.KIOSKSCREEN.model.MenuItem;
 import com.example.kioskapplication.KIOSKSCREEN.repository.CustomerOrdersRepository;
 import com.example.kioskapplication.KIOSKSCREEN.repository.MenuItemRepository;
-import com.example.kioskapplication.KITCHENSCREEN.controller.KitchenController;
 import com.example.kioskapplication.KITCHENSCREEN.service.KitchenService;
 import jakarta.transaction.Transactional;
 import lombok.Getter;
@@ -15,14 +13,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-
 @Service
-public class KioskScreenService implements KioskService{
+public class KioskScreenService implements KioskService {
 
-    //Before Order Screen Functionalities.
+    // Before Order Screen Functionalities.
     @Getter
     private boolean orderStarted = false;
     private OrderType orderType = null;
@@ -30,14 +26,17 @@ public class KioskScreenService implements KioskService{
     private OrderStatus orderStatus = null;
     private boolean isPaid = false;
 
-    @Autowired
-    private KitchenService kitchenService;
-
     private final MenuItemRepository menuItemRepository;
     private final CustomerOrdersRepository customerOrdersRepository;
-    public KioskScreenService(MenuItemRepository menuItemRepository, CustomerOrdersRepository customerOrdersRepository) {
-        this.customerOrdersRepository = customerOrdersRepository;
+    private final KitchenService kitchenService;
+
+    @Autowired
+    public KioskScreenService(MenuItemRepository menuItemRepository,
+                              CustomerOrdersRepository customerOrdersRepository,
+                              KitchenService kitchenService) {
         this.menuItemRepository = menuItemRepository;
+        this.customerOrdersRepository = customerOrdersRepository;
+        this.kitchenService = kitchenService;
     }
 
     private final List<MenuItem> cartItems = new ArrayList<>();
@@ -56,8 +55,7 @@ public class KioskScreenService implements KioskService{
     public void setOrderType(OrderType orderType) {
         if(isOrderStarted()) {
             this.orderType = orderType;
-        }else {
-            // Handle the case where the order has not started yet
+        } else {
             throw new IllegalStateException("Order has not started yet. Please start an order first.");
         }
     }
@@ -67,7 +65,7 @@ public class KioskScreenService implements KioskService{
         return orderType;
     }
 
-    //Screen Statics
+    // Screen Statics
     @Override
     public List<MenuItemCategory> getMenuItemCategories() {
         if(!isOrderStarted()){
@@ -79,7 +77,7 @@ public class KioskScreenService implements KioskService{
         return List.of(MenuItemCategory.values());
     }
 
-    //Kiosk Functionalities.
+    // Kiosk Functionalities.
     @Override
     public List<MenuItem> getAllMenuItemsPerCategory(MenuItemCategory category, String sortOrder) {
         if (!isOrderStarted() || orderType == null) {
@@ -89,10 +87,8 @@ public class KioskScreenService implements KioskService{
         List<MenuItem> items = menuItemRepository.findByItemCategorySelected(category);
 
         switch (sortOrder.toLowerCase()) {
-            case "asc" ->
-                    items.sort(Comparator.comparingDouble(MenuItem::getItemPrice)); // ascending
-            case "desc" ->
-                    items.sort(Comparator.comparingDouble(MenuItem::getItemPrice).reversed()); // descending
+            case "asc" -> items.sort(Comparator.comparingDouble(MenuItem::getItemPrice));
+            case "desc" -> items.sort(Comparator.comparingDouble(MenuItem::getItemPrice).reversed());
             case "default" -> {
                 // do nothing, retain DB/default declaration order
             }
@@ -103,21 +99,8 @@ public class KioskScreenService implements KioskService{
     }
 
     public List<MenuItem> addMenuItemToCartByCategoryAndId(MenuItemCategory category, Integer itemId) {
-        if (!isOrderStarted() || orderType == null) {
-            throw new IllegalStateException("Please start an order and select order type before adding items.");
-        }
-
-        // ✅ Fetch the item safely from repository
-        MenuItem menuItem = menuItemRepository
-                .findByItemIdAndItemCategorySelected(itemId, category)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Menu item not found for category " + category + " and ID " + itemId));
-
-        // ✅ Add it to the cart
-        cartItems.add(menuItem);
-        return cartItems;
+        return addMenuItemToCartByCategoryAndId(category, itemId, 1, 'M');
     }
-
 
     public MenuItem getMenuItemById(Long itemId) {
         return menuItemRepository.findById(itemId.intValue())
@@ -135,13 +118,13 @@ public class KioskScreenService implements KioskService{
 
     @Override
     public boolean removeMenuItemFromCart(Long id) {
-        return cartItems.removeIf(item -> item.getItemId()==(id));
+        return cartItems.removeIf(item -> item.getItemId() == id);
     }
 
     @Override
     public String updateMenuItemInCart(Long id, char size, int quantity) {
         MenuItem item = cartItems.stream()
-                .filter(i -> i.getItemId()== id.longValue())
+                .filter(i -> i.getItemId() == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Item not found in cart"));
         if (quantity <= 0) throw new IllegalArgumentException("Quantity must be greater than zero");
@@ -159,9 +142,7 @@ public class KioskScreenService implements KioskService{
     public void checkout() {
         if(cartItems.isEmpty()){
             throw new IllegalStateException("Cart is empty. Please add items to cart before checkout.");
-        }else if (cartItems.isEmpty()) {
-            throw new IllegalStateException("Cart is empty");
-        }else{
+        } else {
             this.isCheckout = true;
         }
     }
@@ -169,24 +150,19 @@ public class KioskScreenService implements KioskService{
     @Override
     public void cancelOrder(OrderStatus orderStatus) {
         this.orderStatus = OrderStatus.CANCELLED;
-
-        if(orderStatus == null || orderStatus == OrderStatus.CANCELLED){
-            this.cartItems.clear();
-            this.orderStarted = false;
-            this.orderType = null;
-            this.isCheckout = false;
-            this.isPaid = false;
-        }else{
-            throw new IllegalStateException("Order cannot be cancelled at this stage.");
-        }
+        this.cartItems.clear();
+        this.orderStarted = false;
+        this.orderType = null;
+        this.isCheckout = false;
+        this.isPaid = false;
     }
 
     @Override
     @Transactional
-    public Integer payOrder(){
-        if(!isCheckout){
+    public Integer payOrder() {
+        if(!isCheckout) {
             throw new IllegalStateException("Please checkout before making a payment.");
-        }else{
+        } else {
             this.orderStatus = OrderStatus.PENDING;
             this.isPaid = true;
             CustomerOrder savedOrder = saveOrderToDatabase();
@@ -212,15 +188,12 @@ public class KioskScreenService implements KioskService{
         // convert and attach items
         for (MenuItem menuItem : cartItems) {
             OrderItem orderItem = new OrderItem(menuItem, menuItem.getItemQuantity(), menuItem.getItemSize());
-            // ensure bidirectional linkage
-            order.addOrderItem(orderItem); // addOrderItem should set order on item
+            order.addOrderItem(orderItem);
         }
 
         System.out.println("Saving order with total: " + totalPrice + " and " + order.getOrderItems().size() + " items.");
         return customerOrdersRepository.save(order);
     }
-
-
 
     public ReceiptDTO receiptPrintout(Integer orderId) {
         if (!isCheckout || !isPaid) {
@@ -228,7 +201,7 @@ public class KioskScreenService implements KioskService{
         }
 
         // Get the latest order from database
-        CustomerOrder latestOrder = customerOrdersRepository.findByOrderId(orderId)
+        CustomerOrder latestOrder = customerOrdersRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalStateException("No order found in database with ID: " + orderId));
 
         // Convert OrderItem to ReceiptItemDTO
@@ -243,9 +216,9 @@ public class KioskScreenService implements KioskService{
                 .collect(Collectors.toList());
 
         return new ReceiptDTO(
-                latestOrder.getOrderId(), // This is your database ID starting from 10000
+                latestOrder.getOrderId(),
                 latestOrder.getOrderType(),
-                latestOrder.getOrderDateTime(), // Use correct getter
+                latestOrder.getOrderDateTime(),
                 latestOrder.getTotalPrice(),
                 receiptItems,
                 "Aya sa Hapag - Makati",
@@ -254,10 +227,9 @@ public class KioskScreenService implements KioskService{
                 "ayasahapagmkt@gmail.com",
                 "/images/Logo.png"
         );
-
     }
 
-    // new signature
+    // Updated method with quantity and size parameters
     public List<MenuItem> addMenuItemToCartByCategoryAndId(MenuItemCategory category, Integer itemId, int quantity, char size) {
         if (!isOrderStarted() || orderType == null) {
             throw new IllegalStateException("Please start an order and select order type before adding items.");
@@ -268,31 +240,24 @@ public class KioskScreenService implements KioskService{
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Menu item not found for category " + category + " and ID " + itemId));
 
-        // Create a new MenuItem instance for the cart (do NOT modify the repository entity)
+        // Create a new MenuItem instance for the cart
         MenuItem cartItem = new MenuItem();
-        // copy the fields you need (id, name, price, desc, image, category, etc.)
         cartItem.setItemId(repoItem.getItemId());
         cartItem.setItemName(repoItem.getItemName());
         cartItem.setItemPrice(repoItem.getItemPrice());
         cartItem.setItemDescription(repoItem.getItemDescription());
         cartItem.setItemImageUrl(repoItem.getItemImageUrl());
         cartItem.setItemCategorySelected(repoItem.getItemCategorySelected());
-        // set chosen size & quantity:
         cartItem.setItemSize(size);
         cartItem.setItemQuantity(quantity);
 
-        // add to internal cart
         cartItems.add(cartItem);
-
         return cartItems;
     }
-
-
 
     // Add this method to clear cart after receipt is generated
     @Transactional
     public void completeOrder() {
-        // Clear cart and reset state after receipt is generated
         this.cartItems.clear();
         this.orderStarted = false;
         this.orderType = null;
@@ -300,5 +265,4 @@ public class KioskScreenService implements KioskService{
         this.isPaid = false;
         this.orderStatus = null;
     }
-
 }
