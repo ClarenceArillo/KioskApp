@@ -130,91 +130,136 @@ export default function ReviewScreen() {
   };
 
   return (
-    <Box className={styles.root}>
-      <Box className={`${styles.main} ${styles.red} ${styles.center}`}>
-        <Dialog maxWidth="sm" fullWidth open={isOpen} onClose={closeHandler}>
-          <DialogTitle className={styles.center}>Edit {product.name}</DialogTitle>
-          <Box className={`${styles.row} ${styles.center}`}>
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={quantity === 1}
-              onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-            >
-              <RemoveIcon />
-            </Button>
-            <TextField
-              inputProps={{ 
-                className: styles.largeInput, 
-                min: 1,
-                readOnly: true // Prevent manual input for consistency
-              }}
-              className={styles.largeNumber}
-              type="number"
-              variant="filled"
-              value={quantity}
-            />
-            <Button variant="contained" color="primary" onClick={() => setQuantity(quantity + 1)}>
-              <AddIcon />
-            </Button>
-          </Box>
-          <Box className={`${styles.row} ${styles.around}`}>
-            <Button
-              onClick={cancelOrRemoveFromOrder}
-              variant="contained"
-              color="error"
-              size="large"
-              className={styles.largeButton}
-            >
-              Remove From Order
-            </Button>
-            <Button
-              onClick={addToOrderHandler}
-              variant="contained"
-              color="primary"
-              size="large"
-              className={styles.largeButton}
-            >
-              Update Quantity
-            </Button>
-          </Box>
-        </Dialog>
+      <Box className={styles.root}>
+        <Box className={`${styles.main} ${styles.red} ${styles.center}`}>
+          {/* === Edit Quantity Dialog === */}
+          <Dialog maxWidth="sm" fullWidth open={isOpen} onClose={closeHandler}>
+            <DialogTitle className={styles.center}>Edit {product.name}</DialogTitle>
+            <Box className={`${styles.row} ${styles.center}`}>
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={quantity === 1}
+                onClick={() => quantity > 1 && setQuantity(quantity - 1)}
+              >
+                <RemoveIcon />
+              </Button>
+              <TextField
+                inputProps={{
+                  className: styles.largeInput,
+                  min: 1,
+                  readOnly: true, // Prevent manual input for consistency
+                }}
+                className={styles.largeNumber}
+                type="number"
+                variant="filled"
+                value={quantity}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => setQuantity(quantity + 1)}
+              >
+                <AddIcon />
+              </Button>
+            </Box>
+            <Box className={`${styles.row} ${styles.around}`}>
+              <Button
+                onClick={cancelOrRemoveFromOrder}
+                variant="contained"
+                color="error"
+                size="large"
+                className={styles.largeButton}
+              >
+                Remove From Order
+              </Button>
+              <Button
+                onClick={addToOrderHandler}
+                variant="contained"
+                color="primary"
+                size="large"
+                className={styles.largeButton}
+              >
+                Update Quantity
+              </Button>
+            </Box>
+          </Dialog>
 
-        <Box className={`${styles.center} ${styles.column}`}>
-          <Logo large />
-          <Typography gutterBottom className={styles.title} variant="h3">
-            Review my {orderType} order
-          </Typography>
+          {/* === Header Section === */}
+          <Box className={`${styles.center} ${styles.column}`}>
+            <Logo large />
+            <Typography gutterBottom className={styles.title} variant="h3">
+              Review my {orderType} order
+            </Typography>
+          </Box>
+
+          {/* === Order Item List === */}
+          <Grid container>
+            {orderItems.map((orderItem) => (
+              <Grid item md={12} key={orderItem.name}>
+                <Card
+                  className={styles.card}
+                  onClick={() => productClickHandler(orderItem)}
+                >
+                  <CardActionArea>
+                    <CardContent>
+                      <Box className={`${styles.row} ${styles.between}`}>
+                        <Typography variant="body2" color="textPrimary">
+                          {orderItem.name}
+                        </Typography>
+                        <Button variant="contained">Edit</Button>
+                      </Box>
+                      <Box className={`${styles.row} ${styles.between}`}>
+                        <Typography variant="body2" color="textPrimary">
+                          {orderItem.quantity} x ₱{orderItem.price}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         </Box>
 
-        <Grid container>
-          {orderItems.map((orderItem) => (
-            <Grid item md={12} key={orderItem.name}>
-              <Card className={styles.card} onClick={() => productClickHandler(orderItem)}>
-                <CardActionArea>
-                  <CardContent>
-                    <Box className={`${styles.row} ${styles.between}`}>
-                      <Typography variant="body2" color="textPrimary">
-                        {orderItem.name}
-                      </Typography>
-                      <Button variant="contained">Edit</Button>
-                    </Box>
-                    <Box className={`${styles.row} ${styles.between}`}>
-                      <Typography variant="body2" color="textPrimary">
-                        {orderItem.quantity} x ₱{orderItem.price}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
+        {/* === Bottom Section (Total + Buttons) === */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "20px",
+            marginTop: "30px",
+            marginBottom: "40px",
+          }}
+        >
+          {/* Total Summary */}
+          <Box
+            sx={{
+              textAlign: "center",
+              backgroundColor: "#fff",
+              padding: "15px 20px",
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+              width: "70%",
+            }}
+          >
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: "bold",
+                color: "#000",
+              }}
+            >
+              {orderType} Order &nbsp;|&nbsp; Total: ₱
+              {totalPrice?.toFixed(2) || 0}
+            </Typography>
+          </Box>
 
-      <Box className={`${styles.row} ${styles.around}`}>
+          {/* Action Buttons */}
+          <Box className={`${styles.row} ${styles.around}`} sx={{ width: "70%" }}>
             <Button
-              onClick={() => navigate('/order')}
+              onClick={() => navigate("/order")}
               variant="contained"
               color="primary"
               className={styles.largeButton}
@@ -238,18 +283,24 @@ export default function ReviewScreen() {
               color="error"
               className={styles.largeButton}
               style={{
-                backgroundColor: '#b71c1c',
-                color: 'white',
-                fontWeight: 'bold',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
-                transition: '0.3s',
+                backgroundColor: "#b71c1c",
+                color: "white",
+                fontWeight: "bold",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+                transition: "0.3s",
               }}
-              onMouseEnter={(e) => (e.target.style.backgroundColor = '#d32f2f')}
-              onMouseLeave={(e) => (e.target.style.backgroundColor = '#b71c1c')}
+              onMouseEnter={(e) =>
+                (e.target.style.backgroundColor = "#d32f2f")
+              }
+              onMouseLeave={(e) =>
+                (e.target.style.backgroundColor = "#b71c1c")
+              }
             >
               Cancel Order
             </Button>
           </Box>
-    </Box>
+        </Box>
+      </Box>
   );
+
 }
