@@ -1,0 +1,46 @@
+import React, { createContext, useReducer } from 'react';
+import {
+  ORDER_QUEUE_LIST_FAIL,
+  ORDER_QUEUE_LIST_REQUEST,
+  ORDER_QUEUE_LIST_SUCCESS,
+  SCREEN_SET_WIDTH,
+} from './constants';
+
+export const Store = createContext();
+
+const initialState = {
+  queueList: { loading: true, queue: [] },
+};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case SCREEN_SET_WIDTH:
+      return {
+        ...state,
+        widthScreen: true,
+      };
+
+    case ORDER_QUEUE_LIST_REQUEST:
+      return { ...state, queueList: { loading: true } };
+    case ORDER_QUEUE_LIST_SUCCESS:
+      return {
+        ...state,
+        queueList: { loading: false, queue: action.payload },
+      };
+    case ORDER_QUEUE_LIST_FAIL:
+      return {
+        ...state,
+        queueList: { loading: false, error: action.payload },
+      };
+
+    default:
+      return state;
+  }
+}
+
+export function StoreProvider(props) {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const value = { state, dispatch };
+
+  return <Store.Provider value={value}>{props.children}</Store.Provider>;
+}

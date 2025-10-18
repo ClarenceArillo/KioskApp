@@ -32,3 +32,5 @@ build/
 ### VS Code ###
 .vscode/
 frontend/node_modules/
+frontend-kitchen/node_modules/
+frontend-queue/node_modules/
