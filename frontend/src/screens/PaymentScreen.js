@@ -74,13 +74,18 @@ export default function PaymentMethodScreen() {
             marginTop: "20px",
           }}
         >
+          {/* ✅ FIXED QR CODE PATH */}
           <img
-            src="/images/qrcode.png"
-            alt="QR Code"
+            src="/qrcode.png" // ✅ Use absolute path from public folder
+            alt="QR Code for Payment"
             style={{
               width: "250px",
               height: "250px",
               objectFit: "contain",
+            }}
+            onError={(e) => {
+              console.error("❌ QR code image failed to load");
+              e.target.style.display = 'none'; // Hide broken image
             }}
           />
         </Box>
