@@ -79,6 +79,28 @@ function reducer(state, action) {
         order: { ...state.order, paymentType: action.payload },
       };
 
+    case 'ORDER_UPDATE_ITEM': {
+      const updatedItem = action.payload;
+
+      const updatedItems = state.order.orderItems.map((item) =>
+        item.itemId === updatedItem.itemId ? { ...item, ...updatedItem } : item
+      );
+
+      const itemsCount = updatedItems.reduce((a, c) => a + c.quantity, 0);
+      const totalPrice = updatedItems.reduce((a, c) => a + c.quantity * c.price, 0);
+
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          orderItems: updatedItems,
+          itemsCount,
+          totalPrice,
+        },
+      };
+    }
+  
+
     case "ORDER_ADD_ITEM": {
       const data = action.payload;
 

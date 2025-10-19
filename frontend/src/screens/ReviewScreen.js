@@ -37,14 +37,34 @@ export default function ReviewScreen() {
   };
 
   const addToOrderHandler = async () => {
-    removeFromOrder(dispatch, product);
-    addToOrder(dispatch, { ...product, quantity });
-    setIsOpen(false);
-    await fetch(
-      `http://localhost:7000/order/cart/view/update?id=${product.itemId}&quantity=${quantity}&size=${product.size || 'M'}`,
-      { method: 'PUT' }
-    );
-  };
+  // 🧱 Prevent crash for invalid quantity
+  if (!quantity || isNaN(quantity) || quantity <= 0) {
+    alert('Please enter a valid quantity.');
+    return;
+  }
+
+  setIsOpen(false);
+
+try {
+  const response = await fetch(
+    `http://localhost:7000/order/cart/view/update?id=${product.itemId}&quantity=${quantity}&size=${product.size || 'M'}`,
+    { method: 'PUT' }
+  );
+  if (!response.ok) throw new Error('Failed to update quantity');
+
+  // ✅ Update context state locally to match
+  const updatedItem = { ...product, quantity };
+  dispatch({
+    type: 'ORDER_UPDATE_ITEM',
+    payload: updatedItem,
+  });
+} catch (error) {
+  console.error('❌ Error updating quantity:', error);
+  alert('Failed to update quantity. Please try again.');
+}
+
+};
+
 
   const cancelOrRemoveFromOrder = async () => {
     removeFromOrder(dispatch, product);
