@@ -1,13 +1,11 @@
 import React, { useEffect, useContext } from "react";
 import { Box, Button, Typography, Paper } from "@mui/material";
 import Logo from "../components/Logo";
-import { useStyles } from "../styles";
 import { setPaymentType } from "../actions";
 import { Store } from "../Store";
 import { useNavigate } from "react-router-dom";
 
 export default function PaymentMethodScreen() {
-  const styles = useStyles();
   const { dispatch } = useContext(Store);
   const navigate = useNavigate();
 
