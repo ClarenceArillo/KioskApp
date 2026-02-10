@@ -134,17 +134,10 @@ export default function OrderScreen() {
         fullWidth
         open={isOpen}
         onClose={closeHandler}
-        slots={{
-          backdrop: (props) => (
-            <Backdrop
-              {...props}
-              sx={{
-                backdropFilter: 'blur(6px)',
-                backgroundColor: 'rgba(255, 255, 255, 0.3)',
-              }}
-            />
-          ),
-        }}
+        disableAutoFocus
+        disableEnforceFocus
+        disableRestoreFocus
+        // Remove the Backdrop slot - use default backdrop with proper styling
         PaperProps={{
           sx: {
             width: '55%',
@@ -154,8 +147,21 @@ export default function OrderScreen() {
             border: '2px solid #f1f1f1',
             backgroundColor: '#fff',
             paddingY: 1,
-            transition: 'all 0.3s ease',
+            transition: 'none',
           },
+        }}
+        // Add BackdropProps directly
+        BackdropProps={{
+          sx: {
+            backdropFilter: 'blur(6px)',
+            backgroundColor: 'rgba(255, 255, 255, 0.3)',
+            transition: 'none',
+          },
+        }}
+        
+        TransitionProps={{
+          appear: false,
+          unmountOnExit: false, 
         }}
       >
         <DialogTitle
@@ -259,6 +265,7 @@ export default function OrderScreen() {
               Add to Order
             </Button>
           </Box>
+          
         </DialogContent>
       </Dialog>
 
