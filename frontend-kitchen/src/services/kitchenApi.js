@@ -185,19 +185,27 @@ class KitchenApiService {
         }
       });
 
-      eventSource.addEventListener('open', () => {
-        console.log('✅ SSE connection established');
+      eventSource.addEventListener('status-change', (event) => {
+        try {
+          const statusData = JSON.parse(event.data);
+          onStatusChange(statusData);
+        } catch (error) {
+          console.error('❌ Error parsing status-change event:', error);
+      }
       });
+
+      eventSource.onopen = () => {
+        console.log('✅ SSE connection opened');
+      };
 
       eventSource.onerror = (error) => {
         console.error('❌ SSE connection error:', error);
-        setTimeout(() => {
-          console.log('🔄 Attempting to reconnect SSE...');
-          KitchenApiService.setupOrderStream(onNewOrder, onStatusChange);
-        }, 5000);
       };
 
-      return eventSource;
+      return () => {
+        console.log('🔌 Closing SSE connection');
+        eventSource.close();
+      };
     } catch (error) {
       console.error('❌ Failed to setup SSE stream:', error);
       return null;

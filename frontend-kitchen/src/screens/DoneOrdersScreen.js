@@ -9,27 +9,36 @@ export default function DoneOrdersScreen() {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    loadDoneOrders();
+    loadDoneOrders(true);
       
     const interval = setInterval(() => {
-      loadDoneOrders();
+      loadDoneOrders(false);
     }, 5000);
 
     return () => clearInterval(interval);
   }, []); 
 
-  const loadDoneOrders = async () => {
+  const loadDoneOrders = async (initialState = false) => {
     try {
+      if(initialState){
       setLoading(true);
       // FIXED: Use getDoneOrders() instead of getOrdersByStatus('DONE')
+      }else{
+      setRefreshing(true);
+      }
       const doneOrders = await KitchenApiService.getDoneOrders();
       setOrders(doneOrders);
     } catch (error) {
       console.error('Failed to load done orders:', error);
     } finally {
-      setLoading(false);
+      if (initialState) {
+        setLoading(false);
+      } else {
+        setRefreshing(false);
+      }
     }
   };
 

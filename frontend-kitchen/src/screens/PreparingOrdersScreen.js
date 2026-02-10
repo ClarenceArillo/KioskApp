@@ -11,22 +11,34 @@ export default function PreparingOrdersScreen() {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Load orders on component mount
   useEffect(() => {
-    loadOrders();
-    setupRealTimeUpdates();
+    loadOrders(true);
+    const cleanupSSE = KitchenApiService.setupOrderStream(
+      () => loadOrders(false),
+      () => loadOrders(false)
+    );
 
     const interval = setInterval(() => {
       loadOrders();
     }, 5000); // Refresh every 5 seconds
 
-  return () => clearInterval(interval);
-  }, []);
+    return () => {
+      clearInterval(interval);
+      cleanupSSE();
+    };
+    }, []);
 
-  const loadOrders = async () => {
+  const loadOrders = async (isInitialState = false) => {
     try {
-      setLoading(true);
+      if(isInitialState){
+       setLoading(true); 
+      }else{
+        setRefreshing(true);
+      }
+      
       const pendingOrders = await KitchenApiService.getOrdersByStatus('PENDING');
       const preparingOrders = await KitchenApiService.getOrdersByStatus('PREPARING');
       const servingOrders = await KitchenApiService.getOrdersByStatus('NOW_SERVING');
@@ -41,19 +53,12 @@ export default function PreparingOrdersScreen() {
       console.error('Failed to load orders:', error);
       alert('Cannot connect to kitchen backend. Please ensure the Spring Boot server is running on port 7000.');
     } finally {
-      setLoading(false);
+      if(isInitialState){
+        setLoading(false);
+      } else {
+        setRefreshing(false);
+      }
     }
-  };
-
-  const setupRealTimeUpdates = () => {
-    KitchenApiService.setupOrderStream(
-    (newOrder) => {
-      loadOrders();
-    },
-    (statusChange) => {
-      loadOrders();
-    }
-  );
   };
 
   const handleStart = async (order) => {

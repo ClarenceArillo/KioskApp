@@ -11,6 +11,7 @@ export const Store = createContext();
 const initialState = {
   queueList: { 
     loading: true, 
+    refreshing: false,
     queue: {
       preparingOrders: [],
       servingOrders: [],
@@ -35,7 +36,9 @@ function reducer(state, action) {
       return { 
         ...state, 
         queueList: { 
-          loading: true,
+          ...state.queueList,
+          loading: action.initialState === true,
+          refreshing: action.initialState !== false,
           queue: state.queueList.queue, // Keep existing queue data while loading
           error: null 
         } 
@@ -55,9 +58,10 @@ function reducer(state, action) {
       return {
         ...state,
         queueList: { 
+          ...state.queueList,
           loading: false, 
+          refreshing: false,
           error: action.payload,
-          queue: state.queueList.queue // Keep existing queue data on error
         },
       };
 

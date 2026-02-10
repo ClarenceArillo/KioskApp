@@ -12,9 +12,13 @@ const axiosInstance = axios.create({
   baseURL: "", // Empty base URL - let React proxy handle it
 });
 
-export const listQueue = async (dispatch) => {
-  dispatch({ type: SCREEN_SET_WIDTH });
-  dispatch({ type: ORDER_QUEUE_LIST_REQUEST });
+export const listQueue = async (dispatch, isInitialState = false) => {
+  if (isInitialState){
+    dispatch({ type: SCREEN_SET_WIDTH });
+  }
+
+  dispatch({ type: ORDER_QUEUE_LIST_REQUEST, isInitialState});
+
   try {
     console.log('🔄 Fetching queue data using React proxy...');
     

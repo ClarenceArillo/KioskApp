@@ -20,7 +20,7 @@ export default function QueueScreen() {
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   // Safe destructuring with default values
-  const { queue = {}, loading = false, error = '' } = state.queueList || {};
+  const { queue = {}, loading = false, refreshing = false, error = '' } = state.queueList || {};
 
   // Safe data extraction with fallbacks
   const preparingOrders = queue?.preparingOrders || [];
@@ -28,13 +28,13 @@ export default function QueueScreen() {
 
   useEffect(() => {
     console.log('🔄 Loading queue data...');
-    listQueue(dispatch);
+    listQueue(dispatch, true); // Pass initialState flag
     
     // Set up auto-refresh every 5 seconds
     const interval = setInterval(() => {
       if (autoRefresh) {
         console.log('🔄 Auto-refreshing queue data...');
-        listQueue(dispatch);
+        listQueue(dispatch,false);
       }
     }, 5000);
 
