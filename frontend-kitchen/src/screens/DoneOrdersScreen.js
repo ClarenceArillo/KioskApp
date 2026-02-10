@@ -53,7 +53,7 @@ export default function DoneOrdersScreen() {
         {/* LEFT SIDE: LIST OF ORDERS */}
         <Box className={styles.orderList}>
           <Typography variant="h6" sx={{ marginBottom: 2 }}>
-            COMPLETED ORDERS (Latest First)
+            COMPLETED ORDERS 
           </Typography>
 
           {orders.length === 0 ? (

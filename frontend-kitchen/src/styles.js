@@ -28,6 +28,7 @@ orderMain: {
   display: 'flex',
   flexGrow: 1,
   padding: 16,
+  height: 'calc(100vh - 80px)'
 },
 
 orderList: {
@@ -35,6 +36,9 @@ orderList: {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
+  padding: '16px',
+  overflowY: 'auto',
+  maxHeight: '100%'
 },
 
 orderListItem: {
