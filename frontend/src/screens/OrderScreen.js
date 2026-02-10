@@ -274,7 +274,7 @@ export default function OrderScreen() {
           borderRight: '3px solid #f5f5f5',
           boxShadow: '4px 0 12px rgba(0,0,0,0.06)',
           height: '100vh',
-          overflowY: 'hidden',
+          overflow: 'hidden',
           flexShrink: 0,
           borderTopRightRadius: '30px',
           borderBottomRightRadius: '30px',
@@ -494,7 +494,7 @@ export default function OrderScreen() {
             ) : errorProducts ? (
               <Alert severity="error">{errorProducts}</Alert>
             ) : (
-              <Grid container spacing={3} justifyContent="center" alignItems="stretch">
+              <Grid container spacing={3} justifyContent="flex-start" alignItems="stretch">
                 {[...products]
                   .sort((a, b) => {
                     if (sortOrder === 'lowToHigh') return a.price - b.price;
