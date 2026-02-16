@@ -1,130 +1,71 @@
 import React from 'react';
-import { Box, Card, CardActionArea, Typography } from '@mui/material';
-import TouchAppIcon from '@mui/icons-material/TouchApp';
-import { useStyles } from '../styles';
-import Logo from '../components/Logo';
+import { Box, Card } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function HomeScreen() {
-  const styles = useStyles();
+  const BOTTOM_NAV_HEIGHT = 500;
   const navigate = useNavigate();
+  const [loading, setLoading] = React.useState(false);
 
   const handleStart = async () => {
+    if (loading) return;
     try {
-      const response = await axios.post('http://localhost:7000/order/start');
-      console.log('Order started:', response.data);
+      setLoading(true);
+      await axios.post('http://localhost:7000/order/start');
       navigate('/choose');
-    } catch (error) {
-      console.error('Failed to start order:', error);
+    } catch {
       alert('Unable to start order. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <Card
-      className={styles.cardFull}
-      style={{
-        backgroundColor: '#ff193d',
-        display: 'flex',
-        flexDirection: 'column',
+      sx={{
         height: '100vh',
+        borderRadius: 0,
         overflow: 'hidden',
+        position: 'relative',
+        backgroundImage: 'url(/images/home-bg.png)', // 👈 your full mockup background
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
-      <CardActionArea onClick={handleStart} style={{ flexGrow: 1 }}>
+
+
+      {/* BOTTOM NAVBAR (clickable) */}
+      <Box
+        onClick={handleStart}
+        sx={{
+          position: 'absolute',
+          left: 0,
+          bottom: 0,
+          width: '100%',
+          height: BOTTOM_NAV_HEIGHT,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-end',
+          cursor: 'pointer',
+          '&:hover img': { transform: 'scale(1.02)' },
+        }}
+      >
         <Box
+          component="img"
+          src="/images/bot-navbar.png"
+          alt="Bottom Navbar"
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            textAlign: 'center',
-            color: 'white',
-            height: '85%',
-            fontWeight: 'bold',
+            height: '72%',
+            width: 'auto',
+            objectFit: 'contain',
+            display: 'block',
+            pointerEvents: 'none',
+            transition: 'transform 0.45s ease',
           }}
-        >
-          <Typography
-            component="h6"
-            variant="h6"
-            sx={{
-              mb: 2,
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-            }}
-          >
-            Fast & Easy
-          </Typography>
-
-          <Typography
-            component="h1"
-            variant="h1"
-            sx={{
-              fontWeight: 900,
-              fontSize: '6rem',
-              lineHeight: 1.1,
-              textTransform: 'uppercase',
-              textShadow: '0px 4px 10px rgba(0, 0, 0, 0.3)',
-            }}
-          >
-            Order <br /> & Pay <br /> Here
-          </Typography>
-
-          <TouchAppIcon
-            sx={{
-              mt: 3,
-              fontSize: 40,
-              color: 'white',
-              animation: 'bounce 2s infinite',
-              '@keyframes bounce': {
-                '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-8px)' },
-              },
-            }}
-          />
-        </Box>
-
-        <Box
-          sx={{
-            backgroundColor: '#00b020',
-            borderTopLeftRadius: '30px',
-            borderTopRightRadius: '30px',
-            padding: '18px 32px',
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 1.5,
-            height: '15%',
-            boxShadow: '0 -5px 15px rgba(0,0,0,0.2)',
-          }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center', 
-              gap: 1.5,
-            }}
-          >
-            <Logo large />
-            <Typography
-              component="h5"
-              variant="h5"
-              sx={{
-                color: 'white',
-                fontWeight: 600,
-                fontSize: '1.6rem',
-                textTransform: 'capitalize',
-                lineHeight: 1, 
-              }}
-            >
-              Touch to start
-            </Typography>
-          </Box>
-        </Box>
-      </CardActionArea>
+        />
+      </Box>
     </Card>
   );
 }

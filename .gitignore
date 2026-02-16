@@ -34,3 +34,9 @@ build/
 frontend/node_modules/
 frontend-kitchen/node_modules/
 frontend-queue/node_modules/
+
+# Node / frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
