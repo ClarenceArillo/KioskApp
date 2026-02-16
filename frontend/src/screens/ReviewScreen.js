@@ -27,6 +27,7 @@ export default function ReviewScreen() {
   const [quantity, setQuantity] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
   const [product, setProduct] = useState({});
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
   const closeHandler = () => setIsOpen(false);
 
@@ -85,15 +86,24 @@ try {
     else alert('Checkout failed. Please add items first.');
   };
 
-  const cancelOrderHandler = async () => {
+  const handleCancelClick = () => {
+    setCancelConfirmOpen(true);
+  };
+
+  const handleConfirmCancel = async () => {
     const response = await fetch('http://localhost:7000/order/cart/view/cancel', {
       method: 'POST',
     });
     if (response.ok) {
       alert('Order cancelled!');
       dispatch({ type: 'ORDER_CLEAR' });
+      setCancelConfirmOpen(false);
       navigate('/');
     } else alert('Failed to cancel order.');
+  };
+
+  const handleCancelDecline = () => {
+    setCancelConfirmOpen(false);
   };
 
   return (
@@ -108,6 +118,89 @@ try {
         pb: 8,
       }}
     >
+      {/* === CANCEL ORDER CONFIRMATION DIALOG === */}
+      <Dialog
+        open={cancelConfirmOpen}
+        onClose={handleCancelDecline}
+        maxWidth="sm"
+        fullWidth
+        slots={{
+          backdrop: (props) => (
+            <Backdrop
+              {...props}
+              sx={{
+                backdropFilter: 'blur(6px)',
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+              }}
+            />
+          ),
+        }}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: '0 0 35px rgba(255,255,255,0.6)',
+            border: '2px solid #f1f1f1',
+            backgroundColor: '#fff',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            textAlign: 'center',
+            fontWeight: 700,
+            fontSize: '1.3rem',
+            color: '#ff2040',
+            borderBottom: '1px solid #f0f0f0',
+          }}
+        >
+          Cancel Order?
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 3, textAlign: 'center' }}>
+          <Typography
+            variant="body1"
+            sx={{
+              color: '#555',
+              fontSize: '1.05rem',
+              mb: 3,
+            }}
+          >
+            Are you sure you want to cancel this order? All items will be removed.
+          </Typography>
+
+          <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+            <Button
+              onClick={handleCancelDecline}
+              variant="contained"
+              sx={{
+                flex: 1,
+                fontWeight: 600,
+                borderRadius: 2,
+                backgroundColor: '#999',
+                '&:hover': { backgroundColor: '#777' },
+                textTransform: 'none',
+              }}
+            >
+              No, Keep Order
+            </Button>
+
+            <Button
+              onClick={handleConfirmCancel}
+              variant="contained"
+              color="error"
+              sx={{
+                flex: 1,
+                fontWeight: 600,
+                borderRadius: 2,
+                textTransform: 'none',
+              }}
+            >
+              Yes, Cancel Order
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
       {/* === EDIT ITEM MODAL === */}
       <Dialog
         maxWidth="sm"
@@ -422,7 +515,7 @@ try {
           </Button>
 
           <Button
-            onClick={cancelOrderHandler}
+            onClick={handleCancelClick}
             variant="contained"
             color="error"
             sx={{

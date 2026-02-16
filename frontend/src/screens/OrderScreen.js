@@ -43,6 +43,8 @@ export default function OrderScreen() {
   const [sortOrder, setSortOrder] = useState('default');
   const [anchorEl, setAnchorEl] = useState(null);
   const [addingToOrder, setAddingToOrder] = useState(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
 
   const { state, dispatch } = useContext(Store);
   const { categories, loading, error } = state.categoryList;
@@ -131,6 +133,34 @@ export default function OrderScreen() {
 
   const closeHandler = () => setIsOpen(false);
   const previewOrderHandler = () => navigate('/review');
+
+  const handleCancelOrderClick = () => {
+    setCancelConfirmOpen(true);
+  };
+
+  const handleConfirmCancel = () => {
+    clearOrder(dispatch);
+    setCancelConfirmOpen(false);
+    navigate('/');
+  };
+
+  const handleCancelDecline = () => {
+    setCancelConfirmOpen(false);
+  };
+
+  const handleRemoveClick = () => {
+    setRemoveConfirmOpen(true);
+  };
+
+  const handleConfirmRemove = () => {
+    removeFromOrder(dispatch, product);
+    setRemoveConfirmOpen(false);
+    setIsOpen(false);
+  };
+
+  const handleRemoveDecline = () => {
+    setRemoveConfirmOpen(false);
+  };
 
   // Format category name for display
   const formatCategoryName = (name) => {
@@ -249,7 +279,14 @@ export default function OrderScreen() {
             }}
           >
             <Button
-              onClick={cancelOrRemoveFromOrder}
+              onClick={() => {
+                const isInOrder = orderItems.find((x) => x.name === product.name);
+                if (isInOrder) {
+                  handleRemoveClick();
+                } else {
+                  closeHandler();
+                }
+              }}
               variant="contained"
               color="error"
               sx={{
@@ -283,7 +320,171 @@ export default function OrderScreen() {
         </DialogContent>
       </Dialog>
 
-      {/* ===== LEFT SIDEBAR ===== */}
+      {/* ===== CANCEL ORDER CONFIRMATION DIALOG ===== */}
+      <Dialog
+        open={cancelConfirmOpen}
+        onClose={handleCancelDecline}
+        maxWidth="sm"
+        fullWidth
+        slots={{
+          backdrop: (props) => (
+            <Backdrop
+              {...props}
+              sx={{
+                backdropFilter: 'blur(6px)',
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+              }}
+            />
+          ),
+        }}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: '0 0 35px rgba(255,255,255,0.6)',
+            border: '2px solid #f1f1f1',
+            backgroundColor: '#fff',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            textAlign: 'center',
+            fontWeight: 700,
+            fontSize: '1.3rem',
+            color: '#ff2040',
+            borderBottom: '1px solid #f0f0f0',
+          }}
+        >
+          Cancel Order?
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 3, textAlign: 'center' }}>
+          <Typography
+            variant="body1"
+            sx={{
+              color: '#555',
+              fontSize: '1.05rem',
+              mb: 3,
+            }}
+          >
+            Are you sure you want to cancel this order? All items will be removed.
+          </Typography>
+
+          <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+            <Button
+              onClick={handleCancelDecline}
+              variant="contained"
+              sx={{
+                flex: 1,
+                fontWeight: 600,
+                borderRadius: 2,
+                backgroundColor: '#999',
+                '&:hover': { backgroundColor: '#777' },
+                textTransform: 'none',
+              }}
+            >
+              No, Continue Ordering
+            </Button>
+
+            <Button
+              onClick={handleConfirmCancel}
+              variant="contained"
+              color="error"
+              sx={{
+                flex: 1,
+                fontWeight: 600,
+                borderRadius: 2,
+                textTransform: 'none',
+              }}
+            >
+              Yes, Cancel Order
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* ===== REMOVE ITEM CONFIRMATION DIALOG ===== */}
+      <Dialog
+        open={removeConfirmOpen}
+        onClose={handleRemoveDecline}
+        maxWidth="sm"
+        fullWidth
+        slots={{
+          backdrop: (props) => (
+            <Backdrop
+              {...props}
+              sx={{
+                backdropFilter: 'blur(6px)',
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+              }}
+            />
+          ),
+        }}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: '0 0 35px rgba(255,255,255,0.6)',
+            border: '2px solid #f1f1f1',
+            backgroundColor: '#fff',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            textAlign: 'center',
+            fontWeight: 700,
+            fontSize: '1.3rem',
+            color: '#ff2040',
+            borderBottom: '1px solid #f0f0f0',
+          }}
+        >
+          Remove {product.name}?
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 3, textAlign: 'center' }}>
+          <Typography
+            variant="body1"
+            sx={{
+              color: '#555',
+              fontSize: '1.05rem',
+              mb: 3,
+            }}
+          >
+            Are you sure you want to remove this item from your order?
+          </Typography>
+
+          <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+            <Button
+              onClick={handleRemoveDecline}
+              variant="contained"
+              sx={{
+                flex: 1,
+                fontWeight: 600,
+                borderRadius: 2,
+                backgroundColor: '#999',
+                '&:hover': { backgroundColor: '#777' },
+                textTransform: 'none',
+              }}
+            >
+              No, Keep It
+            </Button>
+
+            <Button
+              onClick={handleConfirmRemove}
+              variant="contained"
+              color="error"
+              sx={{
+                flex: 1,
+                fontWeight: 600,
+                borderRadius: 2,
+                textTransform: 'none',
+              }}
+            >
+              Yes, Remove
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
       <Box
         sx={{
           width: 150,
@@ -635,10 +836,7 @@ export default function OrderScreen() {
 
         <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
           <Button
-            onClick={() => {
-              clearOrder(dispatch);
-              navigate('/');
-            }}
+            onClick={handleCancelOrderClick}
             variant="contained"
             color="error"
             fullWidth
