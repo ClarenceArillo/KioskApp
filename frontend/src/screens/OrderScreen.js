@@ -42,6 +42,7 @@ export default function OrderScreen() {
   const [product, setProduct] = useState({});
   const [sortOrder, setSortOrder] = useState('default');
   const [anchorEl, setAnchorEl] = useState(null);
+  const [addingToOrder, setAddingToOrder] = useState(false);
 
   const { state, dispatch } = useContext(Store);
   const { categories, loading, error } = state.categoryList;
@@ -58,9 +59,24 @@ export default function OrderScreen() {
     listCategories(dispatch);
   }, [dispatch]);
 
+  // ✅ Prevent race conditions: track pending requests
   useEffect(() => {
-    listProducts(dispatch, categoryName);
-  }, [dispatch, categoryName]);
+    let isMounted = true;
+
+    const fetchProducts = async () => {
+      if (categoryName && isMounted) {
+        await listProducts(dispatch, categoryName);
+      }
+    };
+
+    // Small delay to debounce rapid category switches
+    const timeoutId = setTimeout(fetchProducts, 150);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [categoryName, dispatch]);
 
   const openSortMenu = Boolean(anchorEl);
   const handleSortClick = (event) => setAnchorEl(event.currentTarget);
@@ -82,6 +98,9 @@ export default function OrderScreen() {
   };
 
   const addToOrderhandler = async () => {
+    if (addingToOrder) return; // Prevent rapid clicks
+    
+    setAddingToOrder(true);
     try {
       const category = (product.itemCategorySelected || 'WHATS_NEW').toUpperCase();
       const itemId = product.itemId || product.id;
@@ -100,7 +119,8 @@ export default function OrderScreen() {
       setIsOpen(false);
     } catch (err) {
       console.error('❌ Failed to add item:', err);
-      alert('Could not add item. Please try again.');
+    } finally {
+      setAddingToOrder(false);
     }
   };
 
@@ -247,6 +267,7 @@ export default function OrderScreen() {
             <Button
               onClick={addToOrderhandler}
               variant="contained"
+              disabled={addingToOrder}
               sx={{
                 flex: 1,
                 fontWeight: 600,
@@ -256,7 +277,7 @@ export default function OrderScreen() {
                 textTransform: 'none',
               }}
             >
-              Add to Order
+              {addingToOrder ? 'Adding...' : 'Add to Order'}
             </Button>
           </Box>
         </DialogContent>
@@ -492,8 +513,10 @@ export default function OrderScreen() {
                 <CircularProgress />
               </Box>
             ) : errorProducts ? (
-              <Alert severity="error">{errorProducts}</Alert>
-            ) : (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                ⚠️ Failed to load menu: {errorProducts}. Refresh the page or try another category.
+              </Alert>
+            ) : products && products.length > 0 ? (
               <Grid container spacing={3} justifyContent="center" alignItems="stretch">
                 {[...products]
                   .sort((a, b) => {
@@ -565,6 +588,10 @@ export default function OrderScreen() {
                     </Grid>
                   ))}
               </Grid>
+            ) : (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                No products available in this category.
+              </Alert>
             )}
           </>
         )}

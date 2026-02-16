@@ -13,9 +13,10 @@ import {
   ORDER_CLEAR,
 } from "./constants";
 
-// ✅ Backend base URL
+// ✅ Backend base URL with timeout
 const axiosInstance = axios.create({
   baseURL: "http://localhost:7000/order",
+  timeout: 8000, // 8 second timeout to prevent hanging
 });
 
 // ✅ Start order
@@ -171,21 +172,13 @@ export const addToOrder = async (dispatch, product) => {
       const category = encodeURIComponent(payload.itemCategorySelected);
       const itemId = payload.itemId;
 
-      const res = await fetch(
-        `http://localhost:7000/order/${category}/${itemId}/add`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
+      // Use axios for consistency with other API calls
+      const res = await axiosInstance.post(
+        `/${category}/${itemId}/add`,
+        payload
       );
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Failed to add item to backend cart");
-      }
-
-      const updatedCart = await res.json();
+      const updatedCart = res.data;
 
       // Update frontend store only after backend confirms success
       dispatch({
@@ -206,7 +199,8 @@ export const addToOrder = async (dispatch, product) => {
       console.log("🛒 Updated cart:", updatedCart);
     } catch (error) {
       console.error("❌ addToOrder failed:", error);
-      alert("Failed to add item to cart. Please try again.");
+      const errorMsg = error.response?.data || error.message || "Failed to add item to cart";
+      alert(`Could not add item: ${errorMsg}. Please try again.`);
     }
   };
 
