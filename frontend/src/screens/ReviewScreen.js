@@ -28,6 +28,7 @@ export default function ReviewScreen() {
   const [isOpen, setIsOpen] = useState(false);
   const [product, setProduct] = useState({});
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [removeItemConfirmOpen, setRemoveItemConfirmOpen] = useState(false);
 
   const closeHandler = () => setIsOpen(false);
 
@@ -104,6 +105,19 @@ try {
 
   const handleCancelDecline = () => {
     setCancelConfirmOpen(false);
+  };
+
+  const handleRemoveItemClick = () => {
+    setRemoveItemConfirmOpen(true);
+  };
+
+  const handleConfirmRemoveItem = async () => {
+    await cancelOrRemoveFromOrder();
+    setRemoveItemConfirmOpen(false);
+  };
+
+  const handleRemoveItemDecline = () => {
+    setRemoveItemConfirmOpen(false);
   };
 
   return (
@@ -196,6 +210,89 @@ try {
               }}
             >
               Yes, Cancel Order
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* === REMOVE ITEM CONFIRMATION DIALOG === */}
+      <Dialog
+        open={removeItemConfirmOpen}
+        onClose={handleRemoveItemDecline}
+        maxWidth="sm"
+        fullWidth
+        slots={{
+          backdrop: (props) => (
+            <Backdrop
+              {...props}
+              sx={{
+                backdropFilter: 'blur(6px)',
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+              }}
+            />
+          ),
+        }}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: '0 0 35px rgba(255,255,255,0.6)',
+            border: '2px solid #f1f1f1',
+            backgroundColor: '#fff',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            textAlign: 'center',
+            fontWeight: 700,
+            fontSize: '1.3rem',
+            color: '#ff2040',
+            borderBottom: '1px solid #f0f0f0',
+          }}
+        >
+          Remove {product.name}?
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 3, textAlign: 'center' }}>
+          <Typography
+            variant="body1"
+            sx={{
+              color: '#555',
+              fontSize: '1.05rem',
+              mb: 3,
+            }}
+          >
+            Are you sure you want to remove this item from your order?
+          </Typography>
+
+          <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+            <Button
+              onClick={handleRemoveItemDecline}
+              variant="contained"
+              sx={{
+                flex: 1,
+                fontWeight: 600,
+                borderRadius: 2,
+                backgroundColor: '#999',
+                '&:hover': { backgroundColor: '#777' },
+                textTransform: 'none',
+              }}
+            >
+              No, Keep It
+            </Button>
+
+            <Button
+              onClick={handleConfirmRemoveItem}
+              variant="contained"
+              color="error"
+              sx={{
+                flex: 1,
+                fontWeight: 600,
+                borderRadius: 2,
+                textTransform: 'none',
+              }}
+            >
+              Yes, Remove
             </Button>
           </Box>
         </DialogContent>
@@ -301,7 +398,7 @@ try {
             }}
           >
             <Button
-              onClick={cancelOrRemoveFromOrder}
+              onClick={handleRemoveItemClick}
               variant="contained"
               color="error"
               sx={{
