@@ -1,23 +1,22 @@
 import React, { useContext } from "react";
-import Logo from "../components/Logo";
-import {
-  Box,
-  CardActionArea,
-  CardContent,
-  CardMedia,
-  Fade,
-  Typography,
-} from "@mui/material";
-import { useStyles } from "../styles";
-import { setOrderType } from "../actions";
+import { Box, CardActionArea, CardContent, CardMedia, Fade } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+
 import { Store } from "../Store";
+import { setOrderType } from "../actions";
+import { useStyles } from "../styles";
 
 export default function ChooseScreen() {
+  /* ==============================
+     HOOKS / CONTEXT
+  ============================== */
   const styles = useStyles();
   const { dispatch } = useContext(Store);
   const navigate = useNavigate();
 
+  /* ==============================
+     HANDLERS
+  ============================== */
   const chooseHandler = async (orderType) => {
     try {
       setOrderType(dispatch, orderType);
@@ -28,177 +27,159 @@ export default function ChooseScreen() {
         { method: "POST" }
       );
 
-      if (response.ok) {
-        console.log("✅ Order type set successfully:", formattedType);
-        navigate("/order");
-      } else {
-        const errMsg = await response.text();
-        console.error("❌ Failed to set order type:", errMsg);
-        alert("Failed to set order type. Check backend connection.");
+      if (!response.ok) {
+        alert("Failed to set order type.");
+        return;
       }
+
+      navigate("/order");
     } catch (err) {
-      console.error("⚠️ Error connecting to backend:", err);
-      alert(
-        "Backend not reachable. Please ensure the Spring Boot server is running on port 7000."
-      );
+      alert("Backend not reachable.");
     }
   };
 
+  /* ==============================
+     REUSABLE STYLES
+  ============================== */
+  const optionCardSx = {
+    background: "#FFF8E7",
+    borderRadius: "28px",
+    boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+    width: 400,
+    minHeight: 500,
+    p: 3,
+    textAlign: "center",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      transform: "translateY(-6px) scale(1.03)",
+      boxShadow: "0 12px 35px rgba(0,0,0,0.3)",
+    },
+  };
+
+  const labelImageSx = {
+    height: 70,
+    width: "auto",
+    objectFit: "contain",
+    display: "block",
+  };
+
+  /* ==============================
+     UI
+  ============================== */
   return (
-    <Fade in={true}>
+    <Fade in>
       <Box
-        className={`${styles.chooseRoot}`}
+        className={styles.chooseRoot}
         sx={{
-          backgroundColor: "#ff2040",
-          height: "100vh",
+          minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          textAlign: "center",
-          overflow: "hidden",
-          padding: "40px 20px",
+          justifyContent: "flex-start",
           position: "relative",
+          overflow: "hidden",
+          color: "#fff",
+
+          /* Background image */
+          backgroundImage: "url(/images/choose-bg.png)",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       >
-        {/* 🔷 Subtle Glow Background */}
+        {/* Background glow overlay */}
         <Box
           sx={{
             position: "absolute",
             inset: 0,
             background:
-              "radial-gradient(circle at center, rgba(255,255,255,0.08) 0%, transparent 70%)",
+              "radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 70%)",
+            zIndex: 0,
           }}
         />
 
-        {/* 🟢 Logo */}
-        <Box sx={{ zIndex: 2 }}>
-          <Logo large />
-        </Box>
-
-        {/* 🏷️ Title */}
-        <Typography
-          component="h3"
-          variant="h3"
-          sx={{
-            marginTop: 4,
-            fontWeight: 800,
-            textTransform: "uppercase",
-            letterSpacing: "1px",
-            textShadow: "0 3px 8px rgba(0,0,0,0.25)",
-            zIndex: 2,
-          }}
-        >
-          Where will you be eating today?
-        </Typography>
-
-        {/* 🍽️ Choose Options */}
+        {/* Top navbar */}
         <Box
           sx={{
+            position: "fixed",
+            top: 0,
+            height: 120,
+            width: "100%",
+            backgroundColor: "#FFF8E7",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10,
+            boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+          }}
+        >
+          <Box
+            component="img"
+            src="/images/new-logo.png"
+            alt="Navbar Logo"
+            sx={{ height: "70%", objectFit: "contain" }}
+          />
+        </Box>
+
+        {/* Options */}
+        <Box
+          sx={{
+            mt: 16, // space below fixed navbar
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            gap: 8,
-            marginTop: 6,
+            gap: 10,
             flexWrap: "wrap",
             zIndex: 2,
+            pb: 20,
           }}
         >
           {/* DINE IN */}
-          <Box
-            sx={{
-              background: "linear-gradient(145deg, #ffffff, #f5f5f5)",
-              borderRadius: "28px",
-              boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-              width: 280,
-              padding: 3,
-              textAlign: "center",
-              transition: "all 0.3s ease",
-              "&:hover": {
-                transform: "translateY(-6px) scale(1.03)",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-              },
-            }}
-          >
+          <Box sx={optionCardSx}>
             <CardActionArea onClick={() => chooseHandler("Dine in")}>
               <CardMedia
                 component="img"
-                alt="Dine in"
                 image="/images/Dinein.png"
+                alt="Dine In"
                 sx={{
                   width: "100%",
-                  height: 210,
+                  height: 330,
                   objectFit: "contain",
-                  marginBottom: 2,
-                  filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.15))",
+                  mb: 2,
                 }}
               />
-              <CardContent>
-                <Typography
-                  variant="h4"
-                  component="p"
-                  sx={{
-                    fontFamily: '"Poppins", "Segoe UI", sans-serif',
-                    fontWeight: 800,
-                    color: "#ff2040",
-                    textTransform: "uppercase",
-                    letterSpacing: "1px",
-                    textAlign: "center",
-                    textShadow: "0 2px 6px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  Dine In
-                </Typography>
+              <CardContent sx={{ display: "flex", justifyContent: "center" }}>
+                <Box
+                  component="img"
+                  src="/images/dinein-txt.png"
+                  alt="Dine In label"
+                  sx={labelImageSx}
+                />
               </CardContent>
             </CardActionArea>
           </Box>
 
           {/* TAKE OUT */}
-          <Box
-            sx={{
-              background: "linear-gradient(145deg, #ffffff, #f5f5f5)",
-              borderRadius: "28px",
-              boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-              width: 280,
-              padding: 3,
-              textAlign: "center",
-              transition: "all 0.3s ease",
-              "&:hover": {
-                transform: "translateY(-6px) scale(1.03)",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-              },
-            }}
-          >
+          <Box sx={optionCardSx}>
             <CardActionArea onClick={() => chooseHandler("Take out")}>
               <CardMedia
                 component="img"
-                alt="Take out"
                 image="/images/Takeout.png"
+                alt="Take Out"
                 sx={{
                   width: "100%",
-                  height: 210,
+                  height: 330,
                   objectFit: "contain",
-                  marginBottom: 2,
-                  filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.15))",
+                  mb: 2,
                 }}
               />
-              <CardContent>
-                <Typography
-                  variant="h4"
-                  component="p"
-                  sx={{
-                    fontFamily: '"Poppins", "Segoe UI", sans-serif',
-                    fontWeight: 800,
-                    color: "#00b020",
-                    textTransform: "uppercase",
-                    letterSpacing: "1px",
-                    textAlign: "center",
-                    textShadow: "0 2px 6px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  Take Out
-                </Typography>
+              <CardContent sx={{ display: "flex", justifyContent: "center" }}>
+                <Box
+                  component="img"
+                  src="/images/takeout-txt.png"
+                  alt="Take Out label"
+                  sx={labelImageSx}
+                />
               </CardContent>
             </CardActionArea>
           </Box>
