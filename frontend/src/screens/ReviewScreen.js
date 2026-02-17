@@ -281,12 +281,13 @@ export default function ReviewScreen() {
         <Typography
           variant="h4"
           sx={{
+            fontFamily: '"Spectral", serif',
             fontWeight: 700,
             color: "#ed7319",
             textAlign: "center",
             bottom: 100,
             mt: 17,
-            textShadow: "0px 1px 4px rgba(218, 49, 3, 0.51)",
+            textShadow: "0px 1px 4px rgba(150, 54, 28, 0.34)",
           }}
         >
           Review My {orderType} Order
@@ -362,11 +363,9 @@ export default function ReviewScreen() {
                 >
                   <Typography
                     sx={{
-                      fontFamily: '"Spectral", serif',
-                      fontSize: '1.6rem',
+                      fontSize: '1.3rem',
                       fontWeight: 900,
                       color: '#2d2926',
-                      textShadow: "0px 1px 4px rgba(0, 0, 0, 0.36)",
                       flex: 1,
                     }}
                   >
@@ -385,11 +384,9 @@ export default function ReviewScreen() {
                   >
                   <Typography
                     sx={{
-                      fontFamily: '"Spectral", serif',
                       color: "#6b6b6b",
                       fontWeight: 500,
                       fontSize: "1.4rem",
-                      textShadow: "0px 1px 4px rgba(0, 0, 0, 0.41)",
                     }}
                   >
                     {orderItem.quantity}×
@@ -401,7 +398,6 @@ export default function ReviewScreen() {
                       color: "#ed7319",
                       fontWeight: 600,
                       fontSize: "1.7rem",
-                      textShadow: "0px 1px 4px rgba(218, 49, 3, 0.51)",
                     }}
                   >
                     ₱{orderItem.price}
@@ -460,9 +456,9 @@ export default function ReviewScreen() {
               flex: 1,
               borderRadius: 3,
               fontWeight: 600,
-              backgroundColor: "#ddd",
+              backgroundColor: "#c3e2ab",
               color: "#2d2926",
-              "&:hover": { backgroundColor: "#ccc" },
+              "&:hover": { backgroundColor: "#ed7319" },
               textTransform: "none",
             }}
           >
@@ -477,8 +473,9 @@ export default function ReviewScreen() {
               flex: 1,
               borderRadius: 3,
               fontWeight: 600,
-              backgroundColor: "#ff2040",
-              "&:hover": { backgroundColor: "#e01b36" },
+              backgroundColor: "#c3e2ab",
+              color: "#2d2926",
+              "&:hover": { backgroundColor: "#ed7319" },
               textTransform: "none",
             }}
           >
@@ -493,6 +490,10 @@ export default function ReviewScreen() {
               flex: 1,
               borderRadius: 3,
               fontWeight: 600,
+              textTransform: "none",
+              backgroundColor: "#c3e2ab",
+              color: "#2d2926",
+              "&:hover": { backgroundColor: "#ed7319" },
               textTransform: "none",
             }}
           >

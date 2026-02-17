@@ -1,5 +1,6 @@
 package com.example.kioskapplication.KIOSKSCREEN.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +25,7 @@ public class OrderItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
+    @JsonIgnore
     private CustomerOrder customerOrder;
 
     public OrderItem(MenuItem menuItem, int quantity, char itemSize) {
@@ -34,5 +36,4 @@ public class OrderItem {
         this.subtotal = this.itemPrice * this.quantity;
         this.menuItemId = menuItem.getItemId();
     }
-
 }
